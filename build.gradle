@@ -1,0 +1,65 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:2.0.1.RELEASE")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
+
+//apply plugin: 'war'
+//war.baseName = 'LinkedIn bot'
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+        resources {
+            srcDirs = ['resources']
+        }
+    }
+}
+
+bootJar {
+    baseName = 'gs-spring-boot'
+    version =  '0.1.0'
+
+    mainClassName = 'tech.mangosoft.autolinkedin.Application'
+
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-data-jpa:2.0.1.RELEASE"){
+        exclude module: "spring-boot-starter-logging"
+        exclude module: "logback-classic"
+    }
+    compile("org.springframework.boot:spring-boot-starter-log4j2")
+    compile("org.springframework.boot:spring-boot-starter-tomcat")
+    compile("org.springframework.boot:spring-boot-starter-web"){
+        exclude module: "spring-boot-starter-logging"
+        exclude module: "logback-classic"
+    }
+    compile("mysql:mysql-connector-java:6.0.4")
+    compile("org.seleniumhq.selenium:selenium-server:3.11.0")
+    compile("org.seleniumhq.selenium:selenium-remote-driver:3.6.0")
+    compile("org.codehaus.groovy:groovy-all:2.4.15")
+    compile("com.fasterxml.jackson.core:jackson-core:2.9.4")
+    compile("com.fasterxml.jackson.core:jackson-databind:2.9.4")
+    compile("org.jsoup:jsoup:1.11.3")
+    compile("org.apache.logging.log4j:log4j-iostreams")
+
+}
