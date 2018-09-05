@@ -1,5 +1,6 @@
 package tech.mangosoft.autolinkedin.db.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.Type;
 import org.springframework.data.annotation.LastModifiedDate;
 import tech.mangosoft.autolinkedin.db.entity.enums.Status;
@@ -9,6 +10,7 @@ import javax.persistence.*;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static javax.persistence.GenerationType.IDENTITY;
@@ -55,15 +57,24 @@ public class Assignment {
     private String industries;
 
     private Integer countsFound;
+    
+    private Integer countMessages;
 
     @Column(length = 4096)
     private String message;
 
-    @Column(name = "update_time", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    @Type(type = "java.sql.Timestamp")
-    @LastModifiedDate
-    @Temporal(TemporalType.TIMESTAMP)
-    private Timestamp updateTime;
+//    @Column(name = "update_time", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+//    @Type(type = "java.sql.Timestamp")
+//    @LastModifiedDate
+//    @Temporal(TemporalType.TIMESTAMP)
+//    private Timestamp updateTime;
+
+    @Column(name = "nextCallbackTime")
+    private Date nextCallbackTime;
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "assignment", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<LinkedInContact> contacts;
 
     @ManyToOne(cascade = CascadeType.DETACH)
     @JoinColumn(name = "account_id")
@@ -166,13 +177,13 @@ public class Assignment {
         return status;
     }
 
-    public Timestamp getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Timestamp updateTime) {
-        this.updateTime = updateTime;
-    }
+//    public Timestamp getUpdateTime() {
+//        return updateTime;
+//    }
+//
+//    public void setUpdateTime(Timestamp updateTime) {
+//        this.updateTime = updateTime;
+//    }
 
     public Account getAccount() {
         return account;
@@ -273,11 +284,42 @@ public class Assignment {
         cp.setAssignment(null);
     }
 
+    public Integer getCountMessages() {
+        return countMessages;
+    }
+
+    public void setCountMessages(Integer countMessages) {
+        this.countMessages = countMessages;
+    }
+
     public List<ProcessingReport> getProcessingReports() {
         return processingReports;
     }
 
     public List<ContactProcessing> getContactProcessings() {
         return contactProcessings;
+    }
+
+
+    public void addContact(LinkedInContact lc) {
+        contacts.add(lc);
+        lc.setAssignment(this);
+    }
+
+    public void removeContact(LinkedInContact lc) {
+        contacts.remove(lc);
+        lc.setAssignment(null);
+    }
+
+    public List<LinkedInContact> getContacts() {
+        return contacts;
+    }
+
+    public Date getNextCallbackTime() {
+        return nextCallbackTime;
+    }
+
+    public void setNextCallbackTime(Date nextCallbackTime) {
+        this.nextCallbackTime = nextCallbackTime;
     }
 }

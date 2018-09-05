@@ -15,6 +15,7 @@ public interface IAssignmentRepository extends CrudRepository<Assignment, Long> 
 
     List<Assignment> findByStatusOrderById(Status status);
     List<Assignment> findByStatusAndAccountOrderById(Status status, Account account);
+    List<Assignment> findByStatusNotAndAccountOrderById(Status status, Account account);
 
 
     List<Assignment> getAllByAccount(Account account);

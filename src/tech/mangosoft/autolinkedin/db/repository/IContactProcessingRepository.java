@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface IContactProcessingRepository extends CrudRepository<ContactProcessing, Long> {
 
-    ContactProcessing findByAccountIdAndContactId(Long accountId, Long contactId);
+    ContactProcessing findFirstByAccountIdAndContactId(Long accountId, Long contactId);
 }

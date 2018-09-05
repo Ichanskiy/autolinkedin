@@ -5,6 +5,7 @@ import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 
 import static javax.persistence.GenerationType.IDENTITY;
@@ -71,6 +72,11 @@ public class LinkedInContact {
     @JsonIgnore
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "contact", cascade = CascadeType.ALL)
     private List<ContactProcessing> contactProcessings;
+
+    @JsonIgnore
+    @ManyToOne
+    @JoinColumn(name = "contact_id")
+    private Assignment assignment;
 
     /*
     @Column(name = "assigned_linkedin_contact")
@@ -276,6 +282,13 @@ public class LinkedInContact {
         return this;
     }
 
+    public Assignment getAssignment() {
+        return assignment;
+    }
+
+    public void setAssignment(Assignment assignment) {
+        this.assignment = assignment;
+    }
 }
 
 

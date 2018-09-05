@@ -29,8 +29,8 @@ public class Account {
     @Column( length = 50 )
     private String password;
 
-    @Column( name = "execution_limit" )
-    private Integer executionLimit;
+//    @Column( name = "execution_limit" )
+//    private Integer executionLimit;
 
     @Column( name = "grabbing_limit" )
     private Integer grabbingLimit;
@@ -51,12 +51,11 @@ public class Account {
     public Account() {
     }
 
-    public Account(String first, String last, String username, String password, Integer executionLimit, Integer grabbingLimit) {
+    public Account(String first, String last, String username, String password, Integer grabbingLimit) {
         this.first = first;
         this.last = last;
         this.username = username;
         this.password = password;
-        this.executionLimit = executionLimit;
         this.grabbingLimit = grabbingLimit;
     }
 
@@ -100,13 +99,13 @@ public class Account {
         this.password = password;
     }
 
-    public Integer getExecutionLimit() {
-        return executionLimit;
-    }
+//    public Integer getExecutionLimit() {
+//        return executionLimit;
+//    }
 
-    public void setExecutionLimit(Integer executionLimit) {
-        this.executionLimit = executionLimit;
-    }
+//    public void setExecutionLimit(Integer executionLimit) {
+//        this.executionLimit = executionLimit;
+//    }
 
     public Integer getGrabbingLimit() {
         return grabbingLimit;

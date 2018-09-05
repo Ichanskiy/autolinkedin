@@ -35,6 +35,11 @@ public class LinkedInService {
 
     private static Logger logger = Logger.getLogger(LinkedInService.class.getName());
 
+    private int accountNumber = 1;
+    private static final int STEP = 1;
+    private static final String FIRST_ACCOUNT = "abaranovskiy1985@gmail.com";
+    private static final String SECOND_ACCOUNT = "oleg.goncharenko@gmail.com";
+
     @Autowired
     LinkedInDataProvider linkedInDataProvider;
 
@@ -50,12 +55,41 @@ public class LinkedInService {
     @Autowired
     private IAccountRepository accountRepository;
 
+//    @Scheduled(cron = "0 0/1 * * * ?")
+//    public void precessingAssignment() {
+//        Account account = accountRepository.getAccountByUsername(getAccountName());
+//
+//        List<Assignment> assignmentList = assignmentRepository.findByStatusAndAccountOrderById(Status.STATUS_NEW, account);
+//        for (Assignment assignment : assignmentList) {
+//            logger.info("assignment with id = " + assignment.getId() + " started!");
+//            if (assignment.getTask().equals(Task.TASK_GRABBING)) {
+////              null check fields
+//                if (!checkField(assignment)) {
+//                    assignmentRepository.save(assignment.setStatus(Status.STATUS_ERROR).setErrorMessage("Field must be not null"));
+//                    continue;
+//                }
+//
+//                grabbingProcessor.processing(assignment);
+//            }
+//            if (assignment.getTask().equals(Task.TASK_CONNECTION)) {
+//                  connectionProcessor.processing(assignment);
+//            }
+//        }
+//    }
+
+    private List<Assignment> assignmentList = new ArrayList<>();
+
     @Scheduled(cron = "0 0/1 * * * ?")
     public void precessingAssignment() {
-        List<Assignment> assignmentList = assignmentRepository.findByStatusOrderById(Status.STATUS_NEW);
+        assignmentList.clear();
+
+        Account account = accountRepository.getAccountByUsername(getAccountName());
+        assignmentList.addAll(assignmentRepository.findByStatusAndAccountOrderById(Status.STATUS_NEW, account));
+        assignmentList.addAll(assignmentRepository.findByStatusAndAccountOrderById(Status.STATUS_ASLEEP, account));
+
         for (Assignment assignment : assignmentList) {
             logger.info("assignment with id = " + assignment.getId() + " started!");
-            if (assignment.getTask().equals(Task.TASK_GRABBING)) {
+            if (assignment.getTask().equals(Task.TASK_GRABBING) && assignment.getStatus().equals(Status.STATUS_NEW)) {
 //              null check fields
                 if (!checkField(assignment)) {
                     assignmentRepository.save(assignment.setStatus(Status.STATUS_ERROR).setErrorMessage("Field must be not null"));
@@ -64,9 +98,27 @@ public class LinkedInService {
                 grabbingProcessor.processing(assignment);
             }
             if (assignment.getTask().equals(Task.TASK_CONNECTION)) {
-                  connectionProcessor.processing(assignment);
+                if (assignment.getStatus().equals(Status.STATUS_NEW)) {
+                    connectionProcessor.processing(assignment);
+                } else if (assignment.getStatus().equals(Status.STATUS_ASLEEP)) {
+                    if (timeIsCorrect(assignment)) {
+                        connectionProcessor.processingAsleepAssignment(assignment);
+                    }
+                }
             }
         }
+    }
+
+    private String getAccountName() {
+        accountNumber = accountNumber + STEP;
+        return accountNumber % 2 == 1 ? FIRST_ACCOUNT : SECOND_ACCOUNT;
+    }
+
+    private boolean timeIsCorrect(Assignment a) {
+        Assignment assignment = assignmentRepository.getById(a.getId());
+        Date nextCallbackDate = assignment.getNextCallbackTime();
+        Date toDay = new Date();
+        return toDay.after(nextCallbackDate);
     }
 
     /**
@@ -87,6 +139,7 @@ public class LinkedInService {
         }
         return true;
     }
+
     /**
      * @author  Ichanskiy
      *

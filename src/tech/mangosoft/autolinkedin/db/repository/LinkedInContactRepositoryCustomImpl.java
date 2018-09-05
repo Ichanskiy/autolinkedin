@@ -9,8 +9,6 @@ import tech.mangosoft.autolinkedin.db.entity.*;
 import javax.transaction.Transactional;
 import java.util.List;
 
-import static tech.mangosoft.autolinkedin.db.entity.LinkedInContact.STATUS_ACQUIRED;
-
 @Service
 public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepositoryCustom {
 
@@ -32,43 +30,65 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
     @Autowired
     private ILocationRepository locationRepository;
 
+    //OLD
+//    @Transactional
+//    @Override
+//    public LinkedInContact getNextAvailableContact(int page, Assignment assignment) {
+////        Page<LinkedInContact> linkedInContacts = contactRepository.findAllByStatus(LinkedInContact.STATUS_NEW, PageRequest.of(page, 1));
+//        LinkedInContact contact = null;
+//        if (assignment.getPosition() != null && assignment.getIndustries() != null && assignment.getFullLocationString() != null) {
+//            Location location = locationRepository.getLocationByLocationLike(assignment.getFullLocationString());
+//            if (location != null) {
+//                contact = contactRepository.findFirstByStatusAndLocationAndRoleContainsAndIndustriesContainsAndContactProcessingsIsNull(LinkedInContact.STATUS_NEW, location, assignment.getPosition(), assignment.getIndustries());
+//                if (contact == null) {
+//                    contact = contactRepository.findFirstByStatusAndLocationAndIndustriesAndContactProcessingsIsNull(LinkedInContact.STATUS_NEW, location, assignment.getIndustries());
+//                }
+////                if (contact == null) {
+////                    contact = contactRepository.findFirstByStatusAndLocationAndRoleContainsAndContactProcessingsIsNull(LinkedInContact.STATUS_NEW, location, assignment.getPosition());
+////                }
+//                if (contact == null) {
+//                    contact = contactRepository.findFirstByStatusAndLocationAndIndustriesContainsAndRoleContains(LinkedInContact.STATUS_NEW, location, assignment.getIndustries(), assignment.getPosition());
+//                }
+//                if (contact == null) {
+//                    contact = contactRepository.findFirstByStatusAndLocationAndIndustriesContains(LinkedInContact.STATUS_NEW, location, assignment.getIndustries());
+//                }
+//                if (contact == null) {
+//                    contact = contactRepository.findFirstByStatusAndLocationAndContactProcessingsIsNull(LinkedInContact.STATUS_NEW, location);
+//                }
+//                if (contact == null) {
+//                    contact = contactRepository.findFirstByStatusAndLocation(LinkedInContact.STATUS_NEW, location);
+//                }
+//                //todo fix
+//                if (contact == null) {
+//                    contact = contactRepository.findFirstByLocation(location);
+//                }
+//            }
+//            else {
+//                logger.error("LOCATION IS NULL");
+//                return null;
+//            }
+//        }
+////        if (contact == null) {
+////            contact = contactRepository.findFirstByStatusAndRoleContainsAndContactProcessingsIsNull(LinkedInContact.STATUS_NEW, assignment.getPosition());
+////        }
+//        if (contact == null) {
+//            logger.error("Can't retrieve new contact from db");
+//            return null;
+//        }
+//        return contactRepository.save(contact.setStatus(STATUS_ACQUIRED));
+//    }
+
     @Transactional
     @Override
     public LinkedInContact getNextAvailableContact(int page, Assignment assignment) {
-//        Page<LinkedInContact> linkedInContacts = contactRepository.findAllByStatus(LinkedInContact.STATUS_NEW, PageRequest.of(page, 1));
-        LinkedInContact contact = null;
-        if (assignment.getPosition() != null && assignment.getIndustries() != null && assignment.getFullLocationString() != null) {
-            Location location = locationRepository.getLocationByLocationLike(assignment.getFullLocationString());
-            if (location != null) {
-                contact = contactRepository.findFirstByStatusAndLocationAndRoleContainsAndIndustriesContainsAndContactProcessingsIsNull(LinkedInContact.STATUS_NEW, location, assignment.getPosition(), assignment.getIndustries());
-                if (contact == null) {
-                    contact = contactRepository.findFirstByStatusAndLocationAndRoleContainsAndContactProcessingsIsNull(LinkedInContact.STATUS_NEW, location, assignment.getPosition());
-                }
-                if (contact == null) {
-                    contact = contactRepository.findFirstByStatusAndLocationAndRoleContainsAndContactProcessingsIsNull(LinkedInContact.STATUS_NEW, location, assignment.getPosition());
-                }
-                if (contact == null) {
-                    contact = contactRepository.findFirstByStatusAndLocationAndContactProcessingsIsNull(LinkedInContact.STATUS_NEW, location);
-                }
-                if (contact == null) {
-                    contact = contactRepository.findFirstByStatusAndLocation(LinkedInContact.STATUS_NEW, location);
-                }
-                //todo fix
-                if (contact == null) {
-                    contact = contactRepository.findFirstByLocation(location);
-                }
-            }
-        }
-//        if (contact == null) {
-//            contact = contactRepository.findFirstByStatusAndRoleContainsAndContactProcessingsIsNull(LinkedInContact.STATUS_NEW, assignment.getPosition());
-//        }
-        if (contact == null) {
-            logger.error("Can't retrieve new contact from db");
-            return null;
-        }
-        return contactRepository.save(contact.setStatus(STATUS_ACQUIRED));
+        LinkedInContact linkedInContact = contactRepository.findFirstByAssignment(assignment);
+        return deleteAssignmentFromContact(linkedInContact);
     }
 
+    private LinkedInContact deleteAssignmentFromContact(LinkedInContact linkedInContact) {
+        linkedInContact.setAssignment(null);
+        return contactRepository.save(linkedInContact);
+    }
 
     @Transactional
     @Override
@@ -76,7 +96,7 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
 
         ProcessingReport report = processingReportRepository.getById(processingReportId);
 
-        ContactProcessing contactProcessing = contactProcessingRepository.findByAccountIdAndContactId(account.getId(), contact.getId());
+        ContactProcessing contactProcessing = contactProcessingRepository.findFirstByAccountIdAndContactId(account.getId(), contact.getId());
         contactRepository.findById(contact.getId());
         if (contactProcessing == null) {
             contactProcessing = new ContactProcessing();

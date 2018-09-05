@@ -5,6 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import tech.mangosoft.autolinkedin.db.entity.Assignment;
 import tech.mangosoft.autolinkedin.db.entity.LinkedInContact;
 import tech.mangosoft.autolinkedin.db.entity.Location;
 
@@ -31,7 +32,13 @@ public interface ILinkedInContactRepository extends JpaRepository<LinkedInContac
 
     LinkedInContact findFirstByStatusAndLocationAndRoleContainsAndIndustriesContainsAndContactProcessingsIsNull(int status, Location location, String role, String industries);
 
-    List<LinkedInContact> findAllByStatusAndLocationAndRoleContainsAndIndustriesContainsAndContactProcessingsIsNull(int status, Location location, String role, String industries);
+    LinkedInContact findFirstByStatusAndLocationAndIndustriesAndContactProcessingsIsNull(int status, Location location, String industries);
+
+    LinkedInContact findFirstByStatusAndLocationAndIndustriesContains(int status, Location location, String industries);
+
+    LinkedInContact findFirstByStatusAndLocationAndIndustriesContainsAndRoleContains(int status, Location location, String industries, String role);
+
+    LinkedInContact findFirstByAssignment(Assignment assignment);
 
     LinkedInContact getById(Long id);
 
@@ -45,6 +52,27 @@ public interface ILinkedInContactRepository extends JpaRepository<LinkedInContac
 
     public boolean existsLinkedInContactByFirstNameAndLastNameAndCompanyName(@Param("firstName") String firstName, @Param("lastName") String lastName, @Param("companyName") String companyName);
 
-    LinkedInContact getFirstByFirstNameAndLastName(String firstName, String lastName);
+    List<LinkedInContact> findAllByStatusAndLocationAndRoleContains(int statusNew, Location location, String position);
 
+    List<LinkedInContact> findAllByStatusAndLocationAndRoleContainsAndIndustriesIsNull(int statusNew, Location location, String position);
+
+    List<LinkedInContact> findAllByStatusAndLocationAndRoleContainsAndIndustriesIsNullAndContactProcessingsIsNull(int statusNew, Location location, String position);
+
+    List<LinkedInContact> findAllByStatusAndLocationAndRoleContainsAndIndustriesContains(int statusNew, Location location, String position, String industries);
+
+    List<LinkedInContact> findAllByStatusAndLocationAndIndustriesContainsAndContactProcessingsIsNull(int statusNew, Location location, String industries);
+
+    List<LinkedInContact> findAllByStatusAndLocationAndIndustriesIsNullAndContactProcessingsIsNull(int statusNew, Location location);
+
+    List<LinkedInContact> findAllByStatusAndLocationAndIndustriesContains(int statusNew, Location location, String industries);
+
+    List<LinkedInContact> findAllByStatusAndLocationAndIndustriesIsNull(int statusNew, Location location);
+
+    List<LinkedInContact> findAllByStatusAndLocationAndRoleContainsAndContactProcessingsIsNull(int statusNew, Location location, String position);
+
+    List<LinkedInContact> findAllByStatusAndLocation(int statusNew, Location location);
+
+    List<LinkedInContact> findAllByStatusAndLocationAndRoleContainsAndIndustriesContainsAndContactProcessingsIsNull(int statusNew, Location location, String position, String industries);
+
+    LinkedInContact getFirstByFirstNameAndLastName(String firstName, String lastName);
 }
