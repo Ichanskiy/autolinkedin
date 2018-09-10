@@ -86,6 +86,9 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
     }
 
     private LinkedInContact deleteAssignmentFromContact(LinkedInContact linkedInContact) {
+        if (linkedInContact == null) {
+            return null;
+        }
         linkedInContact.setAssignment(null);
         return contactRepository.save(linkedInContact);
     }

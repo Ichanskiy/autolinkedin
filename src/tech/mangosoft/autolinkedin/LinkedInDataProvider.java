@@ -453,9 +453,9 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             LinkedInContact contact = contactRepositoryCustom.getNextAvailableContact(assignment.getPage(), assignment);
             if (contact == null) {
                 log.error("CONTACT IS NULL");
-                Assignment assignmentDB = assignmentRepository.getById(assignment.getId());
-                assignmentDB.setStatus(Status.STATUS_ERROR);
-                assignmentRepository.save(assignmentDB);
+//                Assignment assignmentDB = assignmentRepository.getById(assignment.getId());
+//                assignmentDB.setStatus(Status.STATUS_ERROR);
+//                assignmentRepository.save(assignmentDB);
                 try {
                     this.logOut();
                     return finished;

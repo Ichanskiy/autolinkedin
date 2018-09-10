@@ -58,7 +58,7 @@ public class ConnectionProcessor{
         Assignment assignment1 = assignmentRepository.save(assignmentDB);
 
         int size = assignment1.getProcessingReports().size();
-        ProcessingReport processingReport  = assignment1.getProcessingReports().get(size - 1);
+        ProcessingReport processingReport  = assignment1.getProcessingReports().get(size <= 0 ? 0 : size - 1);
 
         boolean statusConnection = linkedInDataProvider.connection(processingReport.getId(), assignmentDB);
         if (statusConnection == finished) {
