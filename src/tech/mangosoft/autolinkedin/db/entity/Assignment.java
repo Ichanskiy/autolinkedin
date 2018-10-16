@@ -74,9 +74,9 @@ public class Assignment {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "assignment", cascade = CascadeType.ALL)
     @JsonIgnore
-    private List<LinkedInContact> contacts;
+    private List<LinkedInContact> contacts = new ArrayList<>();
 
-    @ManyToOne(cascade = CascadeType.DETACH)
+    @ManyToOne(cascade = CascadeType.DETACH, fetch = FetchType.EAGER)
     @JoinColumn(name = "account_id")
     private Account account;
 

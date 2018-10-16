@@ -31,6 +31,9 @@ public class ProcessingReport {
     @Temporal(TemporalType.TIMESTAMP)
     private Date updateTime;
 
+    @Lob
+    private String logByContacts = "";
+
     private Long processed;
 
     private Long saved;
@@ -149,5 +152,18 @@ public class ProcessingReport {
     public ProcessingReport setAssignment(Assignment assignment) {
         this.assignment = assignment;
         return this;
+    }
+
+    public String getLogByContacts() {
+        return logByContacts;
+    }
+
+    public ProcessingReport setLogByContacts(String logContacts) {
+        this.logByContacts = logContacts;
+        return this;
+    }
+
+    public void addLogByContacts(String log){
+        this.setLogByContacts(this.getLogByContacts().concat("\n").concat(log));
     }
 }

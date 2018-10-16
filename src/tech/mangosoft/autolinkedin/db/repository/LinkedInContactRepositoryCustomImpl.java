@@ -134,18 +134,39 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
                 if (contactRepository.existsLinkedInContactByFirstNameAndLastNameAndCompanyName(contact.getFirstName(), contact.getLastName(), contact.getCompanyName())) {
                     LinkedInContact linkedInContactDB = contactRepository.getFirstByFirstNameAndLastName(contact.getFirstName(), contact.getLastName());
                     if (linkedInContactDB != null) {
-//                        linkedInContactDB.setAssignment(assignmentDb);
-                        contactRepository.save(linkedInContactDB);
+                        contactRepository.save(updateContact(linkedInContactDB, contact));
                         contactProcessingRepository.save(getNewContactProcessing(account, ContactProcessing.STATUS_GRABBED, linkedInContactDB, assignmentDb));
+                        String logByContacts = String.format("Contact id = %-4s %-4s %-4s was added by  %-4s",
+                                linkedInContactDB.getId() != null ? linkedInContactDB.getId().toString() : "",
+                                linkedInContactDB.getFirstName() != null ? linkedInContactDB.getFirstName() : "",
+                                linkedInContactDB.getLastName() != null ? linkedInContactDB.getLastName() : "",
+                                getAccountName(linkedInContactDB));
+                        report.addLogByContacts(logByContacts);
+//                        if (assignmentDb.getContacts() != null) {
+//                            for (int i = 0; i < assignmentDb.getContacts().size(); i++) {
+//                                LinkedInContact linkedInContact = assignmentDb.getContacts().get(i);
+//                                if (!linkedInContact.getId().equals(linkedInContactDB.getId())) {
+//                                    assignmentDb.addContact(linkedInContactDB);
+//                                    assignmentRepository.save(assignmentDb);
+//                                }
+//                            }
+//                        }
                     }
                     logger.error("Contact " + contact.getFirstName() + " " + contact.getLastName() +" "+ contact.getCompanyName() + " already exists");
                 } else {
                     logger.info("Contact " + contact.getFirstName() + " " + contact.getLastName() +" "+ contact.getCompanyName() + " saved");
                     try {
-//                        contact.setAssignment(assignmentDb);
                         LinkedInContact linkedInContactDB = contactRepository.save(contact);
+                        String logByContacts = String.format("Contact %-4s %-4s saved with id %-4s",
+                                linkedInContactDB.getFirstName(), linkedInContactDB.getLastName(), linkedInContactDB.getId().toString());
+                        report.addLogByContacts(logByContacts);
                         contactProcessingRepository.save(getNewContactProcessing(account, ContactProcessing.STATUS_GRABBED, linkedInContactDB, assignmentDb));
+                        assignmentDb.addContact(linkedInContactDB);
+                        assignmentRepository.save(assignmentDb);
                     } catch (Exception e) {
+                        String logByContacts = String.format("Contact %-4s %-4s was not saved",
+                                contact.getFirstName(), contact.getLastName());
+                        report.addLogByContacts(logByContacts);
                         logger.info("Contact " + contact.getFirstName() + " " + contact.getLastName() +" "+ contact.getCompanyName() + " not saved");
                         report.incrementFailed(1L);
                         contactProcessingRepository.save(getNewContactProcessing(account, ContactProcessing.STATUS_ERROR, contactRepository.save(contact), assignmentDb));
@@ -155,9 +176,20 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
             }
             report.incrementSuccessed((long) contacts.size());
             report.incrementProcessed((long) contacts.size());
+//            assignmentRepository.save(assignmentDb);
         }
         processingReportRepository.save(report);
         return true;
+    }
+
+    private String getAccountName(LinkedInContact contact) {
+        if (contact.getAssignment() == null) {
+            return "";
+        }
+        if (contact.getAssignment().getAccount() == null) {
+            return "";
+        }
+        return contact.getAssignment().getAccount().getUsername();
     }
 
     private ContactProcessing getNewContactProcessing(Account account, int status, LinkedInContact contact, Assignment assignment){
@@ -167,5 +199,13 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
                 .setStatus(status)
                 .setAssignment(assignment)
                 .setAuditLog(logeMessage);
+    }
+
+    private LinkedInContact updateContact(LinkedInContact contactDb, LinkedInContact newContact) {
+        return contactDb
+                .setIndustries(newContact.getIndustries())
+                .setCompanyName(newContact.getCompanyName())
+                .setRole(newContact.getRole())
+                .setCompanyWebsite(newContact.getCompanyWebsite());
     }
 }

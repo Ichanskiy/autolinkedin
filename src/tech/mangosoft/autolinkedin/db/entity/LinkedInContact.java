@@ -74,8 +74,8 @@ public class LinkedInContact {
     private List<ContactProcessing> contactProcessings;
 
     @JsonIgnore
-    @ManyToOne
-    @JoinColumn(name = "contact_id")
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "assignment_id")
     private Assignment assignment;
 
     /*
