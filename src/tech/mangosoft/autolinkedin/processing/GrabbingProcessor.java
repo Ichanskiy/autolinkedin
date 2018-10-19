@@ -37,21 +37,28 @@ public class GrabbingProcessor{
         assignmentDB.addProcessinReport(processingReportDB);
         assignmentDB.setStatus(Status.STATUS_IN_PROGRESS);
         assignmentRepository.save(assignmentDB);
-        linkedInDataProvider.grabbing(a.getId(), processingReportDB.getId(), a.getLocation(), a.getFullLocationString(), a.getPosition(), a.getIndustries(), a.getAccount());
+        linkedInDataProvider.grabbing(a.getId(), processingReportDB.getId(), a.getFullLocationString(), a.getPosition(), a.getIndustries(), a.getAccount());
 
         ProcessingReport processingReportSaved = processingReportRepository.getById(processingReportDB.getId());
         processingReportSaved.setFinishTime(new Date());
         processingReportRepository.save(processingReportSaved);
     }
 
-    private List<String> parsingIndustries(String allIndustriesString){
-        List<String> resultList = new ArrayList<>();
-        allIndustriesString = allIndustriesString.replace("; ", ";");
-        StringTokenizer stk = new StringTokenizer(allIndustriesString, ";");
-        String[] ar = new String[stk.countTokens()];
-        for (int i = 0; i < ar.length; i++) {
-            resultList.add(stk.nextToken());
-        }
-        return resultList;
+    public void processingSales(Assignment a) {
+        Assignment assignmentDB = assignmentRepository.getById(a.getId());
+        ProcessingReport processingReportDB = processingReportRepository.save(new ProcessingReport()
+                .setSaved(0L)
+                .setFailed(0L)
+                .setProcessed(0L)
+                .setSuccessed(0L))
+                .setStartTime(new Date());
+        assignmentDB.addProcessinReport(processingReportDB);
+        assignmentDB.setStatus(Status.STATUS_IN_PROGRESS);
+        assignmentRepository.save(assignmentDB);
+        linkedInDataProvider.grabbingSales(a.getId(), processingReportDB.getId(), a.getAccount());
+
+        ProcessingReport processingReportSaved = processingReportRepository.getById(processingReportDB.getId());
+        processingReportSaved.setFinishTime(new Date());
+        processingReportRepository.save(processingReportSaved);
     }
 }

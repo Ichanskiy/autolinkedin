@@ -3,6 +3,7 @@ package tech.mangosoft.autolinkedin.db.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.Type;
 import org.springframework.data.annotation.LastModifiedDate;
+import tech.mangosoft.autolinkedin.db.entity.enums.CompanyHeadcount;
 import tech.mangosoft.autolinkedin.db.entity.enums.Status;
 import tech.mangosoft.autolinkedin.db.entity.enums.Task;
 
@@ -11,6 +12,7 @@ import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 
 import static javax.persistence.GenerationType.IDENTITY;
@@ -48,13 +50,17 @@ public class Assignment {
     @Column(name = "error_message", length = 4096)
     private String errorMessage;
 
-    private String location;
-
     private String fullLocationString;
 
     private String position;
 
     private String industries;
+
+    private String groups;
+
+    private Date dailyLimitUpdateDate = new Date();
+
+    private int dailyLimit = 0;
 
     private Integer countsFound;
     
@@ -68,6 +74,9 @@ public class Assignment {
 //    @LastModifiedDate
 //    @Temporal(TemporalType.TIMESTAMP)
 //    private Timestamp updateTime;
+
+//    @Column(columnDefinition = "companyHeadcount")
+    private CompanyHeadcount companyHeadcount;
 
     @Column(name = "nextCallbackTime")
     private Date nextCallbackTime;
@@ -84,28 +93,27 @@ public class Assignment {
     private List<ContactProcessing> contactProcessings = new ArrayList<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "assignment", cascade = CascadeType.ALL)
-    private List<ProcessingReport> processingReports = new ArrayList<>();
+    private List<ProcessingReport> processingReports = new LinkedList<>();
 
     public Assignment() {
     }
 
-    public Assignment(Task task, String location, String fullLocationString, String position, String industries, Account account) {
+    public Assignment(Task task, String fullLocationString, String position, String industries, Account account) {
         this.page = 0;
         this.task = task;
         this.status = Status.STATUS_NEW;
         this.industries = industries;
-        this.location = location;
         this.fullLocationString = fullLocationString;
         this.position = position;
         this.account = account;
     }
 
-    public Assignment(Task task, String location, String fullLocationString, String position, String industries, String message, Account account) {
+    public Assignment(Task task, String fullLocationString, String position, String industries, String message, Account account) {
         this.page = 0;
         this.task = task;
         this.status = Status.STATUS_NEW;
         this.industries = industries;
-        this.location = location;
+//        this.location = location;
         this.fullLocationString = fullLocationString;
         this.position = position;
         this.account = account;
@@ -157,6 +165,10 @@ public class Assignment {
         return this;
     }
 
+    public void setCompanyHeadcount(CompanyHeadcount companyHeadcount) {
+        this.companyHeadcount = companyHeadcount;
+    }
+
     public String getParams() {
         return params;
     }
@@ -165,19 +177,23 @@ public class Assignment {
         this.params = params;
     }
 
-//    public String getSavedParams() {
-//        return savedParams;
-//    }
-
-//    public void setSavedParams(String savedParams) {
-//        this.savedParams = savedParams;
-//    }
+    public CompanyHeadcount getCompanyHeadcount() {
+        return companyHeadcount;
+    }
 
     public Status getStatus() {
         return status;
     }
 
-//    public Timestamp getUpdateTime() {
+    public Date getDailyLimitUpdateDate() {
+        return dailyLimitUpdateDate;
+    }
+
+    public void setDailyLimitUpdateDate(Date dailyLimitUpdateDate) {
+        this.dailyLimitUpdateDate = dailyLimitUpdateDate;
+    }
+
+    //    public Timestamp getUpdateTime() {
 //        return updateTime;
 //    }
 //
@@ -205,15 +221,6 @@ public class Assignment {
 
     public String getErrorMessage() {
         return errorMessage;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public Assignment setLocation(String location) {
-        this.location = location;
-        return this;
     }
 
     public String getFullLocationString() {
@@ -301,6 +308,11 @@ public class Assignment {
     }
 
 
+    public void addNewContact(LinkedInContact lc) {
+        contacts.add(lc);
+        lc.setAssignment(this);
+    }
+
     public void addContact(LinkedInContact lc) {
         contacts.add(lc);
         lc.setAssignment(this);
@@ -321,5 +333,13 @@ public class Assignment {
 
     public void setNextCallbackTime(Date nextCallbackTime) {
         this.nextCallbackTime = nextCallbackTime;
+    }
+
+    public String getGroups() {
+        return groups;
+    }
+
+    public void setGroups(String groups) {
+        this.groups = groups;
     }
 }

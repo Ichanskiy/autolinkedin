@@ -41,33 +41,33 @@ public class ConnectionProcessor{
 
         int size = assignment1.getProcessingReports().size();
         ProcessingReport processingReport  = assignment1.getProcessingReports().get(size - 1);
-
-        boolean statusConnection = linkedInDataProvider.connection(processingReport.getId(), assignmentDB);
-        if (statusConnection == finished) {
-            finished(assignment1,  processingReport);
-        } else {
-            changeAssignmentStatus(assignment1, Status.STATUS_ASLEEP);
-            setNextCallbackTimeToAssignment(assignment1);
-        }
+        linkedInDataProvider.connection(processingReport.getId(), assignmentDB);
+//        boolean statusConnection = linkedInDataProvider.connection(processingReport.getId(), assignmentDB);
+//        if (statusConnection == finished) {
+//            finished(assignment1,  processingReport);
+//        } else {
+//            changeAssignmentStatus(assignment1, Status.STATUS_ASLEEP);
+//            setNextCallbackTimeToAssignment(assignment1);
+//        }
     }
 
-    public void processingAsleepAssignment(Assignment assignment) {
-        Assignment assignmentDB = assignmentRepository.getById(assignment.getId());
-        assignmentDB.setStatus(Status.STATUS_IN_PROGRESS);
-//        todo fix this
-        Assignment assignment1 = assignmentRepository.save(assignmentDB);
-
-        int size = assignment1.getProcessingReports().size();
-        ProcessingReport processingReport  = assignment1.getProcessingReports().get(size <= 0 ? 0 : size - 1);
-
-        boolean statusConnection = linkedInDataProvider.connection(processingReport.getId(), assignmentDB);
-        if (statusConnection == finished) {
-            finished(assignment1, processingReport);
-        } else {
-            changeAssignmentStatus(assignment1, Status.STATUS_ASLEEP);
-            setNextCallbackTimeToAssignment(assignment1);
-        }
-    }
+//    public void processingAsleepAssignment(Assignment assignment) {
+//        Assignment assignmentDB = assignmentRepository.getById(assignment.getId());
+//        assignmentDB.setStatus(Status.STATUS_IN_PROGRESS);
+////        todo fix this
+//        Assignment assignment1 = assignmentRepository.save(assignmentDB);
+//
+//        int size = assignment1.getProcessingReports().size();
+//        ProcessingReport processingReport  = assignment1.getProcessingReports().get(size <= 0 ? 0 : size - 1);
+//
+//        boolean statusConnection = linkedInDataProvider.connection(processingReport.getId(), assignmentDB);
+//        if (statusConnection == finished) {
+//            finished(assignment1, processingReport);
+//        } else {
+//            changeAssignmentStatus(assignment1, Status.STATUS_ASLEEP);
+//            setNextCallbackTimeToAssignment(assignment1);
+//        }
+//    }
 
     private void finished(Assignment assignment, ProcessingReport processingReport){
         finishedProcessingReport(processingReport);

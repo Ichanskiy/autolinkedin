@@ -4,7 +4,8 @@ public enum Task {
 
     TASK_DO_NOTHING(0),
     TASK_GRABBING(1),
-    TASK_CONNECTION(2);
+    TASK_CONNECTION(2),
+    TASK_GRABBING_SALES(3);
 
     private int id;
 

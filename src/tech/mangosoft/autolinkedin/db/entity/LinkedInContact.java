@@ -1,11 +1,14 @@
 package tech.mangosoft.autolinkedin.db.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Type;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import static javax.persistence.GenerationType.IDENTITY;
@@ -59,8 +62,8 @@ public class LinkedInContact {
     private Integer status;
 
     @Column(name = "update_time")
-    @Type(type="java.sql.Timestamp")
-    private Timestamp updateTime;
+    @UpdateTimestamp
+    private Date updateTime;
 
     @Column(name = "comments", length = 16000)
     private String comments;
@@ -93,8 +96,8 @@ public class LinkedInContact {
 */
 
     @Column(name = "creation_time")
-    @Type(type="java.sql.Timestamp")
-    private Timestamp createTime;
+    @CreationTimestamp
+    private Date createTime;
 
     public LinkedInContact(String companyName, String companyWebsite, String companyLinkedin, String firstName, String lastName, String role, String linkedin, String email, Timestamp updateTime) {
         this.companyName = companyName;
@@ -230,11 +233,11 @@ public class LinkedInContact {
             this.auditLog = auditLog;
         }
     */
-    public Timestamp getCreateTime() {
+    public Date getCreateTime() {
         return createTime;
     }
 
-    public void setCreateTime(Timestamp createTime) {
+    public void setCreateTime(Date createTime) {
         this.createTime = createTime;
     }
 
@@ -257,11 +260,11 @@ public class LinkedInContact {
         return this;
     }
 
-    public Timestamp getUpdateTime() {
+    public Date getUpdateTime() {
         return updateTime;
     }
 
-    public void setUpdateTime(Timestamp updateTime) {
+    public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
 
