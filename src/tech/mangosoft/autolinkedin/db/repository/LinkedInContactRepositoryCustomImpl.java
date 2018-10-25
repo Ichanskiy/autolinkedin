@@ -33,8 +33,8 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
     private ILocationRepository locationRepository;
 
     //OLD
-//    @Transactional
-//    @Override
+    @Transactional
+    @Override
     public LinkedInContact getNextAvailableContact(int page, Assignment assignment) {
 //        Page<LinkedInContact> linkedInContacts = contactRepository.findAllByStatus(LinkedInContact.STATUS_NEW, PageRequest.of(page, 1));
         LinkedInContact contact = null;
@@ -61,9 +61,9 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
                     contact = contactRepository.findFirstByStatusAndLocation(LinkedInContact.STATUS_NEW, location);
                 }
                 //todo fix
-                if (contact == null) {
-                    contact = contactRepository.findFirstByLocation(location);
-                }
+//                if (contact == null) {
+//                    contact = contactRepository.findFirstByLocation(location);
+//                }
             }
             else {
                 logger.error("LOCATION IS NULL");

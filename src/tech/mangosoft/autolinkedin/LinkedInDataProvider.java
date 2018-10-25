@@ -26,7 +26,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import tech.mangosoft.autolinkedin.db.entity.*;
-import tech.mangosoft.autolinkedin.db.entity.enums.CompanyHeadcount;
 import tech.mangosoft.autolinkedin.db.entity.enums.Status;
 import tech.mangosoft.autolinkedin.db.repository.*;
 import tech.mangosoft.selenium.SeleniumUtils;
@@ -52,16 +51,16 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     private static Logger log = LogManager.getRootLogger();
     private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(LinkedInDataProvider.class.getName());
     private static StringWriter stringWriter = new StringWriter();
-    private static Map<CompanyHeadcount, Integer> headcountMap = new HashMap<>();
+    private static Map<Integer, Integer> headcountMap = new HashMap<>();
 
     {
-        headcountMap.put(CompanyHeadcount.ONE_TEN, 60);
-        headcountMap.put(CompanyHeadcount.ELEVEN_FIFTY, 70);
-        headcountMap.put(CompanyHeadcount.FIFTYONE_TWOHUNDRED, 90);
-        headcountMap.put(CompanyHeadcount.TWOHUNDREDONE_FIVEHUNDRED, 110);
-        headcountMap.put(CompanyHeadcount.FIVEHUNDREDONE_ONETHOUSAND, 130);
-        headcountMap.put(CompanyHeadcount.ONETHOUSANDONE_FIVETHOUSAND, 150);
-        headcountMap.put(CompanyHeadcount.FIVETHOUSANDONE_TENHOUSAND, 170);
+        headcountMap.put(1, 60);
+        headcountMap.put(11, 70);
+        headcountMap.put(51, 90);
+        headcountMap.put(201, 110);
+        headcountMap.put(501, 130);
+        headcountMap.put(101, 150);
+        headcountMap.put(1001, 170);
     }
 
     @Autowired
@@ -739,8 +738,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             locationRepository.save(currentLocation);
         }
         boolean statusError = false;
-        for (CompanyHeadcount companyHeadcount : CompanyHeadcount.values()) {
-            assignment.setCompanyHeadcount(companyHeadcount);
             assignment.setPage(0);
             try {
                 this.loginTo();
@@ -753,7 +750,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 System.out.println("Error:" + e.getMessage());
                 e.printStackTrace();
             }
-        }
     }
 
     private void parsingAndSavingContacts(Assignment assignment, Account account) throws InterruptedException {
@@ -790,26 +786,28 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     private void fillSalesSearchForm(Assignment assignment) throws InterruptedException {
         log.info("Start fillSalesSearchForm");
-        utils.randomSleep(20);
-        selectRelationShip();
-        if (assignment.getFullLocationString() != null) {
-            writeLocation(assignment.getFullLocationString());
-            logger.info("Location " + assignment.getFullLocationString() + " added");
+        for (CompanyHeadcount headcount: assignment.getHeadcounts()) {
+            utils.randomSleep(20);
+            selectRelationShip();
+            if (assignment.getFullLocationString() != null) {
+                writeLocation(assignment.getFullLocationString());
+                logger.info("Location " + assignment.getFullLocationString() + " added");
+            }
+            if (assignment.getIndustries() != null) {
+                writeIndustries(assignment.getIndustries());
+                logger.info("Industries " + assignment.getIndustries() + " added");
+            }
+            if (assignment.getPosition() != null) {
+                writePosition(assignment.getPosition());
+                logger.info("Position " + assignment.getPosition() + " added");
+            }
+            if (assignment.getHeadcounts() != null) {
+                writeCompanyHeadcount(headcount);
+//            logger.info("Headcount " + assignment.getCompanyHeadcount());
+            }
+            setCountFoundContactsToAssignment(assignment);
+            clickSearchContactsButton();
         }
-        if (assignment.getIndustries() != null) {
-            writeIndustries(assignment.getIndustries());
-            logger.info("Industries " + assignment.getIndustries() + " added");
-        }
-        if (assignment.getPosition() != null) {
-            writePosition(assignment.getPosition());
-            logger.info("Position " + assignment.getPosition() + " added");
-        }
-        if (assignment.getCompanyHeadcount() != null) {
-            writeCompanyHeadcount(assignment.getCompanyHeadcount());
-            logger.info("Headcount " + assignment.getCompanyHeadcount());
-        }
-        setCountFoundContactsToAssignment(assignment);
-        clickSearchContactsButton();
     }
 
     private void clickSearchContactsButton() throws InterruptedException {
@@ -836,7 +834,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             search.get(15).click();
             Actions builder = new Actions(driver);
             utils.randomSleep(10);
-            builder.moveToElement(search.get(15)).moveByOffset(0, headcountMap.get(headcount))
+            builder.moveToElement(search.get(15)).moveByOffset(0, headcountMap.get(headcount.getId().intValue()))
                     .click().build().perform();
             utils.randomSleep(4);
         }

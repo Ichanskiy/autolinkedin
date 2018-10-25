@@ -1,19 +1,11 @@
 package tech.mangosoft.autolinkedin.db.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import org.hibernate.annotations.Type;
-import org.springframework.data.annotation.LastModifiedDate;
-import tech.mangosoft.autolinkedin.db.entity.enums.CompanyHeadcount;
 import tech.mangosoft.autolinkedin.db.entity.enums.Status;
 import tech.mangosoft.autolinkedin.db.entity.enums.Task;
 
 import javax.persistence.*;
-
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -63,7 +55,7 @@ public class Assignment {
     private int dailyLimit = 0;
 
     private Integer countsFound;
-    
+
     private Integer countMessages;
 
     @Column(length = 4096)
@@ -74,9 +66,6 @@ public class Assignment {
 //    @LastModifiedDate
 //    @Temporal(TemporalType.TIMESTAMP)
 //    private Timestamp updateTime;
-
-//    @Column(columnDefinition = "companyHeadcount")
-    private CompanyHeadcount companyHeadcount;
 
     @Column(name = "nextCallbackTime")
     private Date nextCallbackTime;
@@ -94,6 +83,14 @@ public class Assignment {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "assignment", cascade = CascadeType.ALL)
     private List<ProcessingReport> processingReports = new LinkedList<>();
+
+    @ManyToMany(cascade = {CascadeType.ALL}, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "assignment_headcounts",
+            joinColumns = {@JoinColumn(name = "assignment_id")},
+            inverseJoinColumns = {@JoinColumn(name = "headcounts_id")}
+    )
+    private Set<CompanyHeadcount> headcounts = new HashSet<>();
 
     public Assignment() {
     }
@@ -119,29 +116,6 @@ public class Assignment {
         this.account = account;
         this.message = message;
     }
-//    public enum Task {
-//
-//        TASK_DO_NOTHING(0),
-//        TASK_GRABBING(1),
-//        TASK_CONNECTION(2);
-//
-//        private int id;
-//
-//        Task(int id) {
-//            this.id = id;
-//        }
-//
-//        public int getId() {
-//            return id;
-//        }
-//
-//        public static Task getTaskById(int id) throws Exception {
-//            for (Task e : values()) {
-//                if (e.id == id) return e;
-//            }
-//            throw new Exception("No Task defined with id " + id);
-//        }
-//    }
 
     public Long getId() {
         return id;
@@ -165,9 +139,6 @@ public class Assignment {
         return this;
     }
 
-    public void setCompanyHeadcount(CompanyHeadcount companyHeadcount) {
-        this.companyHeadcount = companyHeadcount;
-    }
 
     public String getParams() {
         return params;
@@ -177,9 +148,6 @@ public class Assignment {
         this.params = params;
     }
 
-    public CompanyHeadcount getCompanyHeadcount() {
-        return companyHeadcount;
-    }
 
     public Status getStatus() {
         return status;
@@ -341,5 +309,13 @@ public class Assignment {
 
     public void setGroups(String groups) {
         this.groups = groups;
+    }
+
+    public Set<CompanyHeadcount> getHeadcounts() {
+        return headcounts;
+    }
+
+    public void setHeadcounts(Set<CompanyHeadcount> headcounts) {
+        this.headcounts = headcounts;
     }
 }

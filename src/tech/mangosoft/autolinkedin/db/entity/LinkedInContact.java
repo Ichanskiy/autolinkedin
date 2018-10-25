@@ -2,12 +2,10 @@ package tech.mangosoft.autolinkedin.db.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Type;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.sql.Timestamp;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -80,6 +78,10 @@ public class LinkedInContact {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "assignment_id")
     private Assignment assignment;
+
+    @ManyToOne
+    @JoinColumn(name = "headcount_id")
+    private CompanyHeadcount headcount;
 
     /*
     @Column(name = "assigned_linkedin_contact")

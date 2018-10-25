@@ -5,12 +5,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import tech.mangosoft.autolinkedin.controller.messages.GrabbingMessage;
 import tech.mangosoft.autolinkedin.controller.messages.StatisticResponse;
 import tech.mangosoft.autolinkedin.db.entity.Account;
 import tech.mangosoft.autolinkedin.db.entity.Assignment;
-import tech.mangosoft.autolinkedin.db.entity.ProcessingReport;
-import tech.mangosoft.autolinkedin.db.entity.enums.CompanyHeadcount;
 import tech.mangosoft.autolinkedin.db.entity.enums.Status;
 import tech.mangosoft.autolinkedin.db.entity.enums.Task;
 import tech.mangosoft.autolinkedin.db.repository.IAccountRepository;
@@ -18,11 +15,9 @@ import tech.mangosoft.autolinkedin.db.repository.IAssignmentRepository;
 import tech.mangosoft.autolinkedin.processing.ConnectionProcessor;
 import tech.mangosoft.autolinkedin.processing.GrabbingProcessor;
 
-import javax.annotation.PostConstruct;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static tech.mangosoft.autolinkedin.utils.CSVUtils.parseLine;
