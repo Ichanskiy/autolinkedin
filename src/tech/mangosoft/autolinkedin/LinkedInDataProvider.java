@@ -728,7 +728,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         }
     }
 
-    public void grabbingSales(Long assignmentId, Long processingReportId, Account account) {
+    public void grabbingSales(Long assignmentId, Account account) {
         Assignment assignment = assignmentRepository.getById(assignmentId);
         grabbed = new AtomicInteger(0);
         currentAccount = accountRepository.getAccountByUsername(account.getUsername());
@@ -746,10 +746,14 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 logger.info("Click SearchForLeads successfully");
                 fillSalesSearchForm(assignment);
                 parsingAndSavingContacts(assignment, account);
+                grabbingCompany(assignmentId, account);
             } catch (InterruptedException | RuntimeException e) {
                 System.out.println("Error:" + e.getMessage());
                 e.printStackTrace();
             }
+    }
+
+    public void grabbingCompany(Long id, Account account) {
     }
 
     private void parsingAndSavingContacts(Assignment assignment, Account account) throws InterruptedException {
@@ -1500,4 +1504,5 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         return nextPage.get(nextPage.size()-1);
 
     }
+
 }

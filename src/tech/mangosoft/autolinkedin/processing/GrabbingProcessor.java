@@ -55,7 +55,7 @@ public class GrabbingProcessor{
         assignmentDB.addProcessinReport(processingReportDB);
         assignmentDB.setStatus(Status.STATUS_IN_PROGRESS);
         assignmentRepository.save(assignmentDB);
-        linkedInDataProvider.grabbingSales(a.getId(), processingReportDB.getId(), a.getAccount());
+        linkedInDataProvider.grabbingSales(a.getId(), a.getAccount());
 
         ProcessingReport processingReportSaved = processingReportRepository.getById(processingReportDB.getId());
         processingReportSaved.setFinishTime(new Date());
