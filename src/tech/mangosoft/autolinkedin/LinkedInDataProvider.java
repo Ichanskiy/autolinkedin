@@ -262,6 +262,14 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     }
 
+    private void logOutSales() throws InterruptedException {
+        List<WebElement> image = utils.fluentWait(By.xpath("//a[text() = 'Sign out']"));
+        if (image.size() != 0) {
+            String href = image.get(0).getAttribute("href");
+            driver.get(href);
+        }
+    }
+
     private void logOut() throws InterruptedException {
         clickNavBar();
         clickSignOut();
@@ -746,14 +754,11 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 logger.info("Click SearchForLeads successfully");
                 fillSalesSearchForm(assignment);
                 parsingAndSavingContacts(assignment, account);
-                grabbingCompany(assignmentId, account);
+                this.logOutSales();
             } catch (InterruptedException | RuntimeException e) {
                 System.out.println("Error:" + e.getMessage());
                 e.printStackTrace();
             }
-    }
-
-    public void grabbingCompany(Long id, Account account) {
     }
 
     private void parsingAndSavingContacts(Assignment assignment, Account account) throws InterruptedException {
