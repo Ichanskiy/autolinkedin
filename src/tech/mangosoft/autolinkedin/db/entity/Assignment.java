@@ -1,6 +1,7 @@
 package tech.mangosoft.autolinkedin.db.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import tech.mangosoft.autolinkedin.db.entity.enums.Status;
 import tech.mangosoft.autolinkedin.db.entity.enums.Task;
 
@@ -70,10 +71,6 @@ public class Assignment {
     @Column(name = "nextCallbackTime")
     private Date nextCallbackTime;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "assignment", cascade = CascadeType.ALL)
-    @JsonIgnore
-    private List<LinkedInContact> contacts = new ArrayList<>();
-
     @ManyToOne(cascade = CascadeType.DETACH, fetch = FetchType.EAGER)
     @JoinColumn(name = "account_id")
     private Account account;
@@ -83,6 +80,14 @@ public class Assignment {
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "assignment", cascade = CascadeType.ALL)
     private List<ProcessingReport> processingReports = new LinkedList<>();
+
+    @ManyToMany(cascade ={CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
+    @JoinTable(
+            name = "assignment_contacts",
+            joinColumns = { @JoinColumn(name = "assignment_id") },
+            inverseJoinColumns = { @JoinColumn(name = "contacts_id") }
+    )
+    private Set<LinkedInContact> contacts = new HashSet<>();
 
     @ManyToMany(cascade = {CascadeType.ALL}, fetch = FetchType.EAGER)
     @JoinTable(
@@ -276,23 +281,17 @@ public class Assignment {
     }
 
 
-    public void addNewContact(LinkedInContact lc) {
-        contacts.add(lc);
-        lc.setAssignment(this);
-    }
+//    public void addNewContact(LinkedInContact lc) {
+//        contacts.add(lc);
+//    }
 
     public void addContact(LinkedInContact lc) {
         contacts.add(lc);
-        lc.setAssignment(this);
+//        lc.getAssignments().add(this);
     }
 
     public void removeContact(LinkedInContact lc) {
         contacts.remove(lc);
-        lc.setAssignment(null);
-    }
-
-    public List<LinkedInContact> getContacts() {
-        return contacts;
     }
 
     public Date getNextCallbackTime() {
@@ -317,5 +316,9 @@ public class Assignment {
 
     public void setHeadcounts(Set<CompanyHeadcount> headcounts) {
         this.headcounts = headcounts;
+    }
+
+    public Set<LinkedInContact> getContacts() {
+        return contacts;
     }
 }

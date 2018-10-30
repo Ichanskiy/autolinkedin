@@ -14,6 +14,8 @@ import java.util.stream.Stream;
 
 public interface ILinkedInContactRepository extends JpaRepository<LinkedInContact, Long> {
 
+    LinkedInContact findFirstById(Long id);
+
     LinkedInContact findFirstByStatusAndRoleContainsAndContactProcessingsIsNull(int status, String role);
 
     LinkedInContact findFirstByStatusAndLocationAndContactProcessingsIsNull(int status, Location location);
@@ -37,8 +39,6 @@ public interface ILinkedInContactRepository extends JpaRepository<LinkedInContac
     LinkedInContact findFirstByStatusAndLocationAndIndustriesContains(int status, Location location, String industries);
 
     LinkedInContact findFirstByStatusAndLocationAndIndustriesContainsAndRoleContains(int status, Location location, String industries, String role);
-
-    LinkedInContact findFirstByAssignment(Assignment assignment);
 
     LinkedInContact getById(Long id);
 

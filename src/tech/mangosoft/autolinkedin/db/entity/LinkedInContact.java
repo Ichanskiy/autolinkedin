@@ -7,7 +7,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import javax.persistence.*;
 import java.sql.Timestamp;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -75,9 +77,8 @@ public class LinkedInContact {
     private List<ContactProcessing> contactProcessings;
 
     @JsonIgnore
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "assignment_id")
-    private Assignment assignment;
+    @ManyToMany(mappedBy = "contacts")
+    private Set<Assignment> assignments = new HashSet<>();
 
     @ManyToOne
     @JoinColumn(name = "headcount_id")
@@ -287,12 +288,16 @@ public class LinkedInContact {
         return this;
     }
 
-    public Assignment getAssignment() {
-        return assignment;
+    public Set<Assignment> getAssignments() {
+        return assignments;
     }
 
-    public void setAssignment(Assignment assignment) {
-        this.assignment = assignment;
+    public void addAssignment(Assignment assignment){
+        assignments.add(assignment);
+    }
+
+    public void removeAssignment(Assignment assignment){
+        assignments.remove(assignment);
     }
 }
 
