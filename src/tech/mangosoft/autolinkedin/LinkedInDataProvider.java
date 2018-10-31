@@ -844,9 +844,15 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 writePosition(assignment.getPosition());
                 logger.info("Position " + assignment.getPosition() + " added");
             }
-            if (assignment.getHeadcounts() != null) {
-                writeCompanyHeadcount(headcount);
-//            logger.info("Headcount " + assignment.getCompanyHeadcount());
+
+            writeCompanyHeadcount(headcount);
+            logger.info("Headcount " + headcount.toString());
+
+            if (assignment.getGroups() != null) {
+                for (Group group : assignment.getGroups()) {
+                    writeGroups(group);
+                    logger.info("Group " + group.toString());
+                }
             }
             setCountFoundContactsToAssignment(assignment);
             clickSearchContactsButton();
@@ -879,6 +885,29 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             utils.randomSleep(10);
             builder.moveToElement(search.get(15)).moveByOffset(0, headcountMap.get(headcount.getId().intValue()))
                     .click().build().perform();
+            utils.randomSleep(4);
+        }
+    }
+
+
+    private void writeGroups(Group group) throws InterruptedException {
+
+        List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap\")]"));
+
+        if (!search.isEmpty()) {
+            utils.mouseMoveToElement(search.get(19));
+            utils.randomSleep(10);
+            search.get(19).click();
+            List<WebElement> searchField = utils.fluentWait(By.xpath("//input[contains(@placeholder, \"Find people in groups\")]"));
+            if (!searchField.isEmpty()) {
+                utils.mouseMoveToElement(searchField.get(0));
+                utils.randomSleep(10);
+                searchField.get(0).click();
+            }
+            searchField.get(0).sendKeys(group.getName());
+            utils.randomSleep(4);
+            Actions builder = new Actions(driver);
+            builder.moveToElement(searchField.get(0)).moveByOffset(0, 40).click().build().perform();
             utils.randomSleep(4);
         }
     }
