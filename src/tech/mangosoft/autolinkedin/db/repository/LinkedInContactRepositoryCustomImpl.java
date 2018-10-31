@@ -155,11 +155,8 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
                                 getAccountName(linkedInContactDB));
                         report.addLogByContacts(logByContacts);
                         assignmentDb.getContacts().add(linkedInContactDB);
-
-//                        assignmentDb.addContact(linkedInContactDB);
-//                        linkedInContactDB.addAssignment(assignmentDb);
-//                        assignmentRepository.save(assignmentDb);
-//                        contactRepository.save(linkedInContactDB);
+                        linkedInContactDB.addAssignment(assignmentDb);
+                        assignmentRepository.save(assignmentDb);
                     }
                     logger.error("Contact " + contact.getFirstName() + " " + contact.getLastName() + " " + contact.getCompanyName() + " already exists");
                 } else {
@@ -170,10 +167,9 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
                                 linkedInContactDB.getFirstName(), linkedInContactDB.getLastName(), linkedInContactDB.getId().toString());
                         report.addLogByContacts(logByContacts);
                         contactProcessingRepository.save(getNewContactProcessing(account, ContactProcessing.STATUS_GRABBED, linkedInContactDB, assignmentDb));
-                        assignmentDb.addContact(linkedInContactDB);
+                        assignmentDb.getContacts().add(linkedInContactDB);
                         linkedInContactDB.addAssignment(assignmentDb);
                         assignmentRepository.save(assignmentDb);
-                        contactRepository.save(linkedInContactDB);
                     } catch (Exception e) {
                         String logByContacts = String.format("Contact %-4s %-4s was not saved",
                                 contact.getFirstName(), contact.getLastName());
@@ -186,7 +182,6 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
                 }
             }
             report.incrementSuccessed((long) contacts.size());
-            report.incrementProcessed((long) contacts.size());
         }
         processingReportRepository.save(report);
         return true;
