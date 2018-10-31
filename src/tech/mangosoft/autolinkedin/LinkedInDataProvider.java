@@ -750,7 +750,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             try {
                 this.loginTo();
                 driver.get("https://www.linkedin.com/sales/search/people?viewAllFilters=true");
-                Thread.sleep(14000);
+                Thread.sleep(12000);
                 logger.info("Click SearchForLeads successfully");
                 fillSalesSearchForm(assignment);
                 parsingAndSavingContacts(assignment, account);
@@ -1299,6 +1299,9 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         contact.setStatus(status);
 //        contact.setCreateTime(new Date());
         contact.setLocation(currentLocation);
+
+        getCompanySiteByLinkedInContact(contact);
+
         return contact;
     }
 
@@ -1355,6 +1358,51 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         }
 
         return contacts;
+    }
+
+    private void getCompanySiteByLinkedInContact(LinkedInContact linkedInContact){
+        try {
+            ((JavascriptExecutor)driver).executeScript("window.open()");
+            ArrayList<String> tabs = new ArrayList<String> (driver.getWindowHandles());
+            driver.switchTo().window(tabs.get(1));
+            utils.randomSleep(1);
+            driver.get(linkedInContact.getCompanyLinkedin());
+            logger.info("Link " + linkedInContact.getCompanyLinkedin() + " opened successfully");
+            Thread.sleep(10000);
+            List<WebElement> elementCompanySite = driver.findElements(By.xpath("//a[@data-control-name='topcard_website']"));
+            if(!elementCompanySite.isEmpty()){
+                String companySite = elementCompanySite.get(0).getAttribute("href");
+                linkedInContact.setCompanyWebsite(companySite);
+            }else{
+                ((JavascriptExecutor) driver).executeScript("window.scrollTo(0, document.body.scrollHeight)");
+                utils.randomSleep(4);
+                List<WebElement> searchListCompanies = driver.findElements(By.xpath("//ol[contains(@class,'search-results__result-list')]/li"));
+
+                if(!searchListCompanies.isEmpty() && searchListCompanies.size() == 1){
+
+                    String linkOnCompany = utils.findTextAndExtractValue(
+                            By.xpath(".//dt[contains(@class,'name')]/a"),
+                            searchListCompanies.get(0), "href").orElse(null);
+
+                    if(linkOnCompany != null){
+                        linkedInContact.setCompanyLinkedin(linkOnCompany);
+                        driver.get(linkedInContact.getCompanyLinkedin());
+                        Thread.sleep(10000);
+                        List<WebElement> elementsSite = driver.findElements(By.xpath("//a[@data-control-name='topcard_website']"));
+                        if(!elementsSite.isEmpty()){
+                            String companySite = elementsSite.get(0).getAttribute("href");
+                            linkedInContact.setCompanyWebsite(companySite);
+                        }
+                    }
+                }
+            }
+
+            driver.close();
+            driver.switchTo().window(tabs.get(0));
+        } catch (InterruptedException | RuntimeException e) {
+            System.out.println("Error:" + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     private boolean goToTheNextPageSales(int page, Long assignmentId) throws InterruptedException {
