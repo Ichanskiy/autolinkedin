@@ -10,6 +10,7 @@ import javax.transaction.Transactional;
 import java.util.List;
 
 import static tech.mangosoft.autolinkedin.db.entity.LinkedInContact.STATUS_ACQUIRED;
+import static tech.mangosoft.autolinkedin.db.entity.LinkedInContact.STATUS_ERROR;
 
 @Service
 public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepositoryCustom {
@@ -118,9 +119,13 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
             processingReportRepository.save(report);
             return false;
         }
-        report.incrementSuccessed(1L);
-        report.incrementProcessed(1L);
-        report.incrementSaved(1L);
+        if (status == STATUS_ERROR) {
+            report.incrementFailed(1L);
+        } else {
+            report.incrementSuccessed(1L);
+            report.incrementProcessed(1L);
+            report.incrementSaved(1L);
+        }
         processingReportRepository.save(report);
         return true;
     }
