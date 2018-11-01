@@ -29,6 +29,7 @@ import tech.mangosoft.autolinkedin.db.entity.*;
 import tech.mangosoft.autolinkedin.db.entity.enums.Status;
 import tech.mangosoft.autolinkedin.db.repository.*;
 import tech.mangosoft.selenium.SeleniumUtils;
+import tech.mangosoft.selenium.WebDriverFactoryBean;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -67,6 +68,9 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     @Autowired
     private SeleniumUtils utils;
+
+    @Autowired
+    private WebDriverFactoryBean webDriverFactoryBean;
 
     @Autowired
     private ILinkedInContactRepositoryCustom contactRepositoryCustom;
@@ -654,6 +658,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 error = e.getMessage();
                 System.out.println("Error:" + error);
                 e.printStackTrace();
+                logoutWithoutDrivers();
             }
             try {
                 utils.randomSleep(10);
@@ -671,11 +676,8 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         Assignment assignmentDB = assignmentRepository.getById(assignment.getId());
         assignmentDB.setStatus(Status.STATUS_FINISHED);
         assignmentRepository.save(assignmentDB);
-        try {
-            this.logOut();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        logoutWithoutDrivers();
+
 //        SpringApplication.exit(context, () -> 0);
 //        return;
     }
@@ -766,7 +768,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             error = e.getMessage();
             System.out.println("Error:" + error);
             e.printStackTrace();
-
         }
     }
 
@@ -786,13 +787,30 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             driver.get("https://www.linkedin.com/sales/search/people?viewAllFilters=true");
             Thread.sleep(12000);
             logger.info("Click SearchForLeads successfully");
-            fillSalesSearchForm(assignment);
-            parsingAndSavingContacts(assignment, account);
-            this.logOutSales();
+
+            if (!CollectionUtils.isEmpty(assignment.getHeadcounts())) {
+                for (CompanyHeadcount headcount : assignment.getHeadcounts()) {
+                    fillSalesSearchForm(assignment, headcount);
+                    parsingAndSavingContacts(assignment, account);
+                    driver.get("https://www.linkedin.com/sales/search/people?viewAllFilters=true");
+                    Thread.sleep(12000);
+                }
+            } else {
+                fillSalesSearchForm(assignment, null);
+                parsingAndSavingContacts(assignment, account);
+            }
+//            this.logOutSales();
+            logoutWithoutDrivers();
         } catch (InterruptedException | RuntimeException e) {
             System.out.println("Error:" + e.getMessage());
             e.printStackTrace();
+            logoutWithoutDrivers();
         }
+    }
+
+    private void logoutWithoutDrivers() {
+        driver = webDriverFactoryBean.getNewDriver(driver);
+        utils.setDriver(driver);
     }
 
     private void parsingAndSavingContacts(Assignment assignment, Account account) throws InterruptedException {
@@ -827,9 +845,8 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         }
     }
 
-    private void fillSalesSearchForm(Assignment assignment) throws InterruptedException {
+    private void fillSalesSearchForm(Assignment assignment, CompanyHeadcount headcount) throws InterruptedException {
         log.info("Start fillSalesSearchForm");
-        for (CompanyHeadcount headcount : assignment.getHeadcounts()) {
             utils.randomSleep(20);
             selectRelationShip();
             if (assignment.getFullLocationString() != null) {
@@ -844,13 +861,12 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 writePosition(assignment.getPosition());
                 logger.info("Position " + assignment.getPosition() + " added");
             }
-            if (assignment.getHeadcounts() != null) {
+            if (headcount != null) {
                 writeCompanyHeadcount(headcount);
-//            logger.info("Headcount " + assignment.getCompanyHeadcount());
+                logger.info("Headcount" + headcount.toString() + " added");
             }
             setCountFoundContactsToAssignment(assignment);
             clickSearchContactsButton();
-        }
     }
 
     private void clickSearchContactsButton() throws InterruptedException {

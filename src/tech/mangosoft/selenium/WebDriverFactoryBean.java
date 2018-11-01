@@ -7,8 +7,11 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.springframework.beans.factory.FactoryBean;
 
 import java.net.URL;
+import java.util.logging.Logger;
 
 public class WebDriverFactoryBean implements FactoryBean<WebDriver> {
+
+    private static Logger logger = java.util.logging.Logger.getLogger(WebDriverFactoryBean.class.getName());
 
     @Override
     public WebDriver getObject() throws Exception {
@@ -58,5 +61,16 @@ public class WebDriverFactoryBean implements FactoryBean<WebDriver> {
         return true;
     }
 
+
+    public WebDriver getNewDriver(WebDriver driver) {
+        driver.quit();
+        try {
+            return getObject();
+        } catch (Exception e) {
+            logger.info("ERROR CREATE NEW DRIVER");
+            System.exit(1);
+        }
+        return null;
+    }
 }
 

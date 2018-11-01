@@ -35,6 +35,10 @@ public class SeleniumUtils {
     public SeleniumUtils() {
     }
 
+    public void setDriver(WebDriver driver) {
+        this.driver = driver;
+    }
+
     public void randomSleep(int sleep) throws InterruptedException {
         Thread.sleep(ThreadLocalRandom.current().nextLong(500L * sleep, 1000L * sleep));
     }
