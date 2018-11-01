@@ -2,12 +2,15 @@ package tech.mangosoft.autolinkedin.db.repository;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tech.mangosoft.autolinkedin.db.entity.*;
+import tech.mangosoft.autolinkedin.db.entity.enums.Task;
 
 import javax.transaction.Transactional;
 import java.util.List;
+import java.util.Set;
 
 import static tech.mangosoft.autolinkedin.db.entity.LinkedInContact.STATUS_ACQUIRED;
 import static tech.mangosoft.autolinkedin.db.entity.LinkedInContact.STATUS_ERROR;
@@ -88,13 +91,13 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
 //        return deleteAssignmentFromContact(linkedInContact);
 //    }
 
-    private LinkedInContact deleteAssignmentFromContact(LinkedInContact linkedInContact) {
-        if (linkedInContact == null) {
-            return null;
-        }
-        linkedInContact.setAssignment(null);
-        return contactRepository.save(linkedInContact);
-    }
+//    private LinkedInContact deleteAssignmentFromContact(LinkedInContact linkedInContact) {
+//        if (linkedInContact == null) {
+//            return null;
+//        }
+//        linkedInContact.setAssignment(null);
+//        return contactRepository.save(linkedInContact);
+//    }
 
     @Transactional
     @Override
@@ -103,7 +106,13 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
         ProcessingReport report = processingReportRepository.getById(processingReportId);
 
         ContactProcessing contactProcessing = contactProcessingRepository.findFirstByAccountIdAndContactId(account.getId(), contact.getId());
-        contactRepository.findById(contact.getId());
+        LinkedInContact linkedInContactDb = contactRepository.findFirstById(contact.getId());
+        Assignment assignmentDb = assignmentRepository.getById(assignment.getId());
+        if (linkedInContactDb != null && assignmentDb != null) {
+            linkedInContactDb.addAssignment(assignmentDb);
+            assignmentRepository.save(assignmentDb);
+        }
+
         if (contactProcessing == null) {
             contactProcessing = new ContactProcessing();
             contactProcessing.setAccount(account);
@@ -150,7 +159,8 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
                                 linkedInContactDB.getLastName() != null ? linkedInContactDB.getLastName() : "",
                                 getAccountName(linkedInContactDB));
                         report.addLogByContacts(logByContacts);
-                        assignmentDb.addContact(linkedInContactDB);
+                        assignmentDb.getContacts().add(linkedInContactDB);
+                        linkedInContactDB.addAssignment(assignmentDb);
                         assignmentRepository.save(assignmentDb);
                     }
                     logger.error("Contact " + contact.getFirstName() + " " + contact.getLastName() + " " + contact.getCompanyName() + " already exists");
@@ -162,9 +172,9 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
                                 linkedInContactDB.getFirstName(), linkedInContactDB.getLastName(), linkedInContactDB.getId().toString());
                         report.addLogByContacts(logByContacts);
                         contactProcessingRepository.save(getNewContactProcessing(account, ContactProcessing.STATUS_GRABBED, linkedInContactDB, assignmentDb));
-                        assignmentDb.addNewContact(linkedInContactDB);
+                        assignmentDb.getContacts().add(linkedInContactDB);
+                        linkedInContactDB.addAssignment(assignmentDb);
                         assignmentRepository.save(assignmentDb);
-                        contactRepository.save(linkedInContactDB);
                     } catch (Exception e) {
                         String logByContacts = String.format("Contact %-4s %-4s was not saved",
                                 contact.getFirstName(), contact.getLastName());
@@ -177,21 +187,19 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
                 }
             }
             report.incrementSuccessed((long) contacts.size());
-            report.incrementProcessed((long) contacts.size());
-//            assignmentRepository.save(assignmentDb);
         }
         processingReportRepository.save(report);
         return true;
     }
 
     private String getAccountName(LinkedInContact contact) {
-        if (contact.getAssignment() == null) {
-            return "";
+        Set<Assignment> assignments = contact.getAssignments();
+        for (Assignment assignment : assignments) {
+            if (assignment.getAccount() != null && !assignment.getTask().equals(Task.TASK_CONNECTION)) {
+                return assignment.getAccount().getUsername();
+            }
         }
-        if (contact.getAssignment().getAccount() == null) {
-            return "";
-        }
-        return contact.getAssignment().getAccount().getUsername();
+        return Strings.EMPTY;
     }
 
     private ContactProcessing getNewContactProcessing(Account account, int status, LinkedInContact contact, Assignment assignment){
