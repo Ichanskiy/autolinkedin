@@ -48,8 +48,6 @@ public class Assignment {
 
     private String industries;
 
-    private String groups;
-
     private Date dailyLimitUpdateDate = new Date();
 
     private int dailyLimit = 0;
@@ -84,13 +82,21 @@ public class Assignment {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "assignment", cascade = CascadeType.ALL)
     private List<ProcessingReport> processingReports = new LinkedList<>();
 
-    @ManyToMany(cascade = {CascadeType.ALL}, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = {CascadeType.MERGE , CascadeType.PERSIST}, fetch = FetchType.EAGER)
     @JoinTable(
             name = "assignment_headcounts",
             joinColumns = {@JoinColumn(name = "assignment_id")},
             inverseJoinColumns = {@JoinColumn(name = "headcounts_id")}
     )
     private Set<CompanyHeadcount> headcounts = new HashSet<>();
+
+    @ManyToMany(cascade = {CascadeType.MERGE , CascadeType.PERSIST}, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "assignment_groups",
+            joinColumns = {@JoinColumn(name = "assignment_id")},
+            inverseJoinColumns = {@JoinColumn(name = "groups_id")}
+    )
+    private Set<Group> groups = new HashSet<>();
 
     public Assignment() {
     }
@@ -303,19 +309,19 @@ public class Assignment {
         this.nextCallbackTime = nextCallbackTime;
     }
 
-    public String getGroups() {
-        return groups;
-    }
-
-    public void setGroups(String groups) {
-        this.groups = groups;
-    }
-
     public Set<CompanyHeadcount> getHeadcounts() {
         return headcounts;
     }
 
     public void setHeadcounts(Set<CompanyHeadcount> headcounts) {
         this.headcounts = headcounts;
+    }
+
+    public Set<Group> getGroups() {
+        return groups;
+    }
+
+    public void setGroups(Set<Group> groups) {
+        this.groups = groups;
     }
 }

@@ -861,6 +861,16 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 writePosition(assignment.getPosition());
                 logger.info("Position " + assignment.getPosition() + " added");
             }
+
+            writeCompanyHeadcount(headcount);
+            logger.info("Headcount " + headcount.toString());
+
+            if (assignment.getGroups() != null) {
+                for (Group group : assignment.getGroups()) {
+                    writeGroups(group);
+                    logger.info("Group " + group.toString());
+                }
+            }
             if (headcount != null) {
                 writeCompanyHeadcount(headcount);
                 logger.info("Headcount" + headcount.toString() + " added");
@@ -899,11 +909,34 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         }
     }
 
+
+    private void writeGroups(Group group) throws InterruptedException {
+
+        List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap\")]"));
+
+        if (!search.isEmpty()) {
+            utils.mouseMoveToElement(search.get(19));
+            utils.randomSleep(4);
+            search.get(19).click();
+            List<WebElement> searchField = utils.fluentWait(By.xpath("//input[contains(@placeholder, \"Find people in groups\")]"));
+            if (!searchField.isEmpty()) {
+                utils.mouseMoveToElement(searchField.get(0));
+                utils.randomSleep(4);
+                searchField.get(0).click();
+            }
+            searchField.get(0).sendKeys(group.getName());
+            utils.randomSleep(4);
+            Actions builder = new Actions(driver);
+            builder.moveToElement(searchField.get(0)).moveByOffset(0, 40).click().build().perform();
+            utils.randomSleep(4);
+        }
+    }
+
     private void selectRelationShip() throws InterruptedException {
         List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap\")]"));
         if (!search.isEmpty()) {
             utils.mouseMoveToElement(search.get(2));
-            utils.randomSleep(10);
+            utils.randomSleep(4);
             search.get(2).click();
             Actions builder = new Actions(driver);
             builder.moveToElement(search.get(2)).moveByOffset(0, 40).click().build().perform();
@@ -920,12 +953,12 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap cursor-pointer\")]"));
         if (!search.isEmpty()) {
             utils.mouseMoveToElement(search.get(1));
-            utils.randomSleep(10);
+            utils.randomSleep(4);
             search.get(1).click();
             List<WebElement> searchField = utils.fluentWait(By.xpath("//input[contains(@placeholder, \"Add locations\")]"));
             if (!searchField.isEmpty()) {
                 utils.mouseMoveToElement(searchField.get(0));
-                utils.randomSleep(10);
+                utils.randomSleep(4);
                 searchField.get(0).click();
             }
             searchField.get(0).sendKeys(location);
@@ -940,12 +973,12 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap\")]"));
         if (!search.isEmpty()) {
             utils.mouseMoveToElement(search.get(3));
-            utils.randomSleep(10);
+            utils.randomSleep(4);
             search.get(3).click();
             List<WebElement> searchField = utils.fluentWait(By.xpath("//input[contains(@placeholder, \"Add industries\")]"));
             if (!searchField.isEmpty()) {
                 utils.mouseMoveToElement(searchField.get(0));
-                utils.randomSleep(10);
+                utils.randomSleep(4);
                 searchField.get(0).click();
             }
             searchField.get(0).sendKeys(industries);
@@ -960,12 +993,12 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap\")]"));
         if (!search.isEmpty()) {
             utils.mouseMoveToElement(search.get(12));
-            utils.randomSleep(10);
+            utils.randomSleep(4);
             search.get(12).click();
             List<WebElement> searchField = utils.fluentWait(By.xpath("//input[contains(@placeholder, \"Add titles\")]"));
             if (!searchField.isEmpty()) {
                 utils.mouseMoveToElement(searchField.get(0));
-                utils.randomSleep(10);
+                utils.randomSleep(4);
                 searchField.get(0).click();
             }
             searchField.get(0).sendKeys(position);
@@ -1417,7 +1450,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             utils.randomSleep(1);
             driver.get(linkedInContact.getCompanyLinkedin());
             logger.info("Link " + linkedInContact.getCompanyLinkedin() + " opened successfully");
-            Thread.sleep(10000);
+            Thread.sleep(7000);
             List<WebElement> elementCompanySite = driver.findElements(By.xpath("//a[@data-control-name='topcard_website']"));
             if (!elementCompanySite.isEmpty()) {
                 String companySite = elementCompanySite.get(0).getAttribute("href");
@@ -1427,7 +1460,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 utils.randomSleep(4);
                 List<WebElement> searchListCompanies = driver.findElements(By.xpath("//ol[contains(@class,'search-results__result-list')]/li"));
 
-                if (!searchListCompanies.isEmpty() && searchListCompanies.size() == 1) {
+                if (!searchListCompanies.isEmpty()) {
 
                     String linkOnCompany = utils.findTextAndExtractValue(
                             By.xpath(".//dt[contains(@class,'name')]/a"),
@@ -1436,7 +1469,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                     if (linkOnCompany != null) {
                         linkedInContact.setCompanyLinkedin(linkOnCompany);
                         driver.get(linkedInContact.getCompanyLinkedin());
-                        Thread.sleep(10000);
+                        Thread.sleep(7000);
                         List<WebElement> elementsSite = driver.findElements(By.xpath("//a[@data-control-name='topcard_website']"));
                         if (!elementsSite.isEmpty()) {
                             String companySite = elementsSite.get(0).getAttribute("href");
