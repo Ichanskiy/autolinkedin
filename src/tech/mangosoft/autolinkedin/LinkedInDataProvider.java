@@ -1430,7 +1430,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             utils.randomSleep(1);
             driver.get(linkedInContact.getCompanyLinkedin());
             logger.info("Link " + linkedInContact.getCompanyLinkedin() + " opened successfully");
-            Thread.sleep(10000);
+            Thread.sleep(7000);
             List<WebElement> elementCompanySite = driver.findElements(By.xpath("//a[@data-control-name='topcard_website']"));
             if (!elementCompanySite.isEmpty()) {
                 String companySite = elementCompanySite.get(0).getAttribute("href");
@@ -1449,7 +1449,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                     if (linkOnCompany != null) {
                         linkedInContact.setCompanyLinkedin(linkOnCompany);
                         driver.get(linkedInContact.getCompanyLinkedin());
-                        Thread.sleep(10000);
+                        Thread.sleep(7000);
                         List<WebElement> elementsSite = driver.findElements(By.xpath("//a[@data-control-name='topcard_website']"));
                         if (!elementsSite.isEmpty()) {
                             String companySite = elementsSite.get(0).getAttribute("href");
