@@ -75,6 +75,8 @@ public class LinkedInService {
         Account account = accountRepository.getAccountByUsername(getAccountName());
 //        List<Assignment> assignmentList = assignmentRepository.findByStatusAndAccountOrderById(Status.STATUS_NEW, account);
         List<Assignment> assignmentList = assignmentRepository.findAllByStatusOrderById(Status.STATUS_NEW);
+//        List<Assignment> assignmentList = new ArrayList<>();
+//        assignmentList.add(assignmentRepository.getById(328L));
         for (Assignment assignment : assignmentList) {
             logger.info("assignment with id = " + assignment.getId() + " started!");
             if (assignment.getTask().equals(Task.TASK_GRABBING)) {
