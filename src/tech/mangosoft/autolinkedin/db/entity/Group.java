@@ -1,5 +1,10 @@
 package tech.mangosoft.autolinkedin.db.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import javax.persistence.*;
 
 import java.util.HashSet;
@@ -9,6 +14,10 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "groups")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Group {
 
     @Id
@@ -21,25 +30,7 @@ public class Group {
     @ManyToMany(mappedBy = "groups")
     private Set<Assignment> assignment = new HashSet<>();
 
-    public Group(){}
-
     public Group(String name) {
-        this.name = name;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
         this.name = name;
     }
 

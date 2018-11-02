@@ -1,6 +1,10 @@
 package tech.mangosoft.autolinkedin.db.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.Type;
 
 import javax.persistence.*;
@@ -10,6 +14,10 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "contact_processing")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ContactProcessing {
 
     public static final int STATUS_IMPORTED = 0;
@@ -53,28 +61,9 @@ public class ContactProcessing {
     @JoinColumn(name = "assignment_id")
     private Assignment assignment;
 
-    public ContactProcessing() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Integer getStatus() {
-        return status;
-    }
-
     public ContactProcessing setStatus(Integer status) {
         this.status = status;
         return this;
-    }
-
-    public Account getAccount() {
-        return account;
     }
 
     public ContactProcessing setAccount(Account account) {
@@ -82,50 +71,14 @@ public class ContactProcessing {
         return this;
     }
 
-    public String getError() {
-        return error;
-    }
-
-    public void setError(String error) {
-        this.error = error;
-    }
-
-    public String getAuditLog() {
-        return auditLog;
-    }
-
     public ContactProcessing setAuditLog(String auditLog) {
         this.auditLog = auditLog;
         return this;
     }
 
-    public Timestamp getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Timestamp updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public LinkedInContact getContact() {
-        return contact;
-    }
-
     public ContactProcessing setContact(LinkedInContact contact) {
         this.contact = contact;
         return this;
-    }
-
-    public String getCompact() {
-        return compact;
-    }
-
-    public void setCompact(String compact) {
-        this.compact = compact;
-    }
-
-    public Assignment getAssignment() {
-        return assignment;
     }
 
     public ContactProcessing setAssignment(Assignment assignment) {

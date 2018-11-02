@@ -1,6 +1,10 @@
 package tech.mangosoft.autolinkedin.db.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -15,6 +19,10 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "contact")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class LinkedInContact {
     //new statuses
     public static final int STATUS_IMPORTED = 0;
@@ -114,28 +122,9 @@ public class LinkedInContact {
         this.updateTime = updateTime;
     }
 
-    public LinkedInContact() {
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getCompanyName() {
-        return companyName;
-    }
-
     public LinkedInContact setCompanyName(String companyName) {
         this.companyName = companyName;
         return this;
-    }
-
-    public String getCompanyWebsite() {
-        return companyWebsite;
     }
 
     public LinkedInContact setCompanyWebsite(String companyWebsite) {
@@ -143,25 +132,9 @@ public class LinkedInContact {
         return this;
     }
 
-    public String getCompanyLinkedin() {
-        return companyLinkedin;
-    }
-
-    public void setCompanyLinkedin(String companyLinkedin) {
-        this.companyLinkedin = companyLinkedin;
-    }
-
-    public String getFirstName() {
-        return firstName;
-    }
-
     public LinkedInContact setFirstName(String firstName) {
         this.firstName = firstName;
         return this;
-    }
-
-    public String getLastName() {
-        return lastName;
     }
 
     public LinkedInContact setLastName(String lastName) {
@@ -169,33 +142,14 @@ public class LinkedInContact {
         return this;
     }
 
-    public String getRole() {
-        return role;
-    }
-
     public LinkedInContact setRole(String role) {
         this.role = role;
         return this;
     }
 
-    public String getLinkedin() {
-        return linkedin;
-    }
-
-    public void setLinkedin(String linkedin) {
-        this.linkedin = linkedin;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
     public LinkedInContact setEmail(String email) {
         this.email = email;
         return this;
-    }
-    public Integer getStatus() {
-        return status;
     }
 
     public LinkedInContact setStatus(Integer status) {
@@ -236,26 +190,10 @@ public class LinkedInContact {
             this.auditLog = auditLog;
         }
     */
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-
-    public String getIndustries() {
-        return industries;
-    }
 
     public LinkedInContact setIndustries(String industries) {
         this.industries = industries;
         return this;
-    }
-
-    public Location getLocation() {
-        return location;
     }
 
     public LinkedInContact setLocation(Location location) {
@@ -263,33 +201,9 @@ public class LinkedInContact {
         return this;
     }
 
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public List<ContactProcessing> getContactProcessings() {
-        return contactProcessings;
-    }
-
-    public void setContactProcessings(List<ContactProcessing> contactProcessings) {
-        this.contactProcessings = contactProcessings;
-    }
-
-    public String getComments() {
-        return comments;
-    }
-
     public LinkedInContact setComments(String comments) {
         this.comments = comments;
         return this;
-    }
-
-    public Set<Assignment> getAssignments() {
-        return assignments;
     }
 
     public void addAssignment(Assignment assignment){

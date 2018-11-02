@@ -1,6 +1,10 @@
 package tech.mangosoft.autolinkedin.db.entity;
 
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
@@ -12,6 +16,10 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "processing_report")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProcessingReport {
 
     @Id
@@ -46,9 +54,6 @@ public class ProcessingReport {
     @JoinColumn(name = "assignment_id")
     private Assignment assignment;
 
-    public ProcessingReport() {
-    }
-
     public ProcessingReport(Date startTime, Date finishTime, Timestamp updateTime, Long processed, Long saved, Long successed, Long failed) {
         this.startTime = startTime;
         this.finishTime = finishTime;
@@ -75,25 +80,9 @@ public class ProcessingReport {
         return this.failed += value;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Date getStartTime() {
-        return startTime;
-    }
-
     public ProcessingReport setStartTime(Date startTime) {
         this.startTime = startTime;
         return this;
-    }
-
-    public Date getFinishTime() {
-        return finishTime;
     }
 
     public ProcessingReport setFinishTime(Date finishTime) {
@@ -101,25 +90,9 @@ public class ProcessingReport {
         return this;
     }
 
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Timestamp updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public Long getProcessed() {
-        return processed;
-    }
-
     public ProcessingReport setProcessed(Long processed) {
         this.processed = processed;
         return this;
-    }
-
-    public Long getSaved() {
-        return saved;
     }
 
     public ProcessingReport setSaved(Long saved) {
@@ -127,17 +100,9 @@ public class ProcessingReport {
         return this;
     }
 
-    public Long getSuccessed() {
-        return successed;
-    }
-
     public ProcessingReport setSuccessed(Long successed) {
         this.successed = successed;
         return this;
-    }
-
-    public Long getFailed() {
-        return failed;
     }
 
     public ProcessingReport setFailed(Long failed) {
@@ -145,17 +110,9 @@ public class ProcessingReport {
         return this;
     }
 
-    public Assignment getAssignment() {
-        return assignment;
-    }
-
     public ProcessingReport setAssignment(Assignment assignment) {
         this.assignment = assignment;
         return this;
-    }
-
-    public String getLogByContacts() {
-        return logByContacts;
     }
 
     public ProcessingReport setLogByContacts(String logContacts) {

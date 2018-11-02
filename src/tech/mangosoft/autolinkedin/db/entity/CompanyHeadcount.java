@@ -1,6 +1,10 @@
 package tech.mangosoft.autolinkedin.db.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.HashSet;
@@ -11,6 +15,10 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "headcount")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class CompanyHeadcount {
 
     @Id
@@ -26,30 +34,6 @@ public class CompanyHeadcount {
 
     @ManyToMany(mappedBy = "headcounts")
     private Set<Assignment> assignment = new HashSet<>();
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getHeadcount() {
-        return headcount;
-    }
-
-    public void setHeadcount(String headcount) {
-        this.headcount = headcount;
-    }
-
-    public List<LinkedInContact> getLinkedInContacts() {
-        return linkedInContacts;
-    }
-
-    public void setLinkedInContacts(List<LinkedInContact> linkedInContacts) {
-        this.linkedInContacts = linkedInContacts;
-    }
 
     public void addLinkedInContacts(LinkedInContact linkedInContact) {
         this.linkedInContacts.add(linkedInContact);

@@ -2,6 +2,10 @@ package tech.mangosoft.autolinkedin.db.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import tech.mangosoft.autolinkedin.db.entity.enums.Status;
 import tech.mangosoft.autolinkedin.db.entity.enums.Task;
 
@@ -12,6 +16,10 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "assignment")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Assignment {
 //
 //    public static final int TASK_DO_NOTHING = 0;
@@ -103,9 +111,6 @@ public class Assignment {
     )
     private Set<Group> groups = new HashSet<>();
 
-    public Assignment() {
-    }
-
     public Assignment(Task task, String fullLocationString, String position, String industries, Account account) {
         this.page = 0;
         this.task = task;
@@ -128,18 +133,6 @@ public class Assignment {
         this.message = message;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Task getTask() {
-        return task;
-    }
-
     public Assignment setTask(Task task) {
         this.task = task;
         return this;
@@ -150,28 +143,6 @@ public class Assignment {
         return this;
     }
 
-
-    public String getParams() {
-        return params;
-    }
-
-    public void setParams(String params) {
-        this.params = params;
-    }
-
-
-    public Status getStatus() {
-        return status;
-    }
-
-    public Date getDailyLimitUpdateDate() {
-        return dailyLimitUpdateDate;
-    }
-
-    public void setDailyLimitUpdateDate(Date dailyLimitUpdateDate) {
-        this.dailyLimitUpdateDate = dailyLimitUpdateDate;
-    }
-
     //    public Timestamp getUpdateTime() {
 //        return updateTime;
 //    }
@@ -180,17 +151,9 @@ public class Assignment {
 //        this.updateTime = updateTime;
 //    }
 
-    public Account getAccount() {
-        return account;
-    }
-
     public Assignment setAccount(Account account) {
         this.account = account;
         return this;
-    }
-
-    public Integer getPage() {
-        return page;
     }
 
     public Assignment setPage(int page) {
@@ -198,30 +161,14 @@ public class Assignment {
         return this;
     }
 
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
-    public String getFullLocationString() {
-        return fullLocationString;
-    }
-
     public Assignment setFullLocationString(String fullLocationString) {
         this.fullLocationString = fullLocationString;
         return this;
     }
 
-    public String getPosition() {
-        return position;
-    }
-
     public Assignment setPosition(String position) {
         this.position = position;
         return this;
-    }
-
-    public String getIndustries() {
-        return industries;
     }
 
     public Assignment setIndustries(String industries) {
@@ -232,22 +179,6 @@ public class Assignment {
     public Assignment setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
         return this;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public Integer getCountsFound() {
-        return countsFound;
-    }
-
-    public void setCountsFound(Integer countsFound) {
-        this.countsFound = countsFound;
     }
 
     public void addProcessinReport(ProcessingReport pr) {
@@ -270,23 +201,6 @@ public class Assignment {
         cp.setAssignment(null);
     }
 
-    public Integer getCountMessages() {
-        return countMessages;
-    }
-
-    public void setCountMessages(Integer countMessages) {
-        this.countMessages = countMessages;
-    }
-
-    public List<ProcessingReport> getProcessingReports() {
-        return processingReports;
-    }
-
-    public List<ContactProcessing> getContactProcessings() {
-        return contactProcessings;
-    }
-
-
 //    public void addNewContact(LinkedInContact lc) {
 //        contacts.add(lc);
 //    }
@@ -298,33 +212,5 @@ public class Assignment {
 
     public void removeContact(LinkedInContact lc) {
         contacts.remove(lc);
-    }
-
-    public Date getNextCallbackTime() {
-        return nextCallbackTime;
-    }
-
-    public void setNextCallbackTime(Date nextCallbackTime) {
-        this.nextCallbackTime = nextCallbackTime;
-    }
-
-    public Set<CompanyHeadcount> getHeadcounts() {
-        return headcounts;
-    }
-
-    public void setHeadcounts(Set<CompanyHeadcount> headcounts) {
-        this.headcounts = headcounts;
-    }
-
-    public Set<LinkedInContact> getContacts() {
-        return contacts;
-    }
-
-    public Set<Group> getGroups() {
-        return groups;
-    }
-
-    public void setGroups(Set<Group> groups) {
-        this.groups = groups;
     }
 }

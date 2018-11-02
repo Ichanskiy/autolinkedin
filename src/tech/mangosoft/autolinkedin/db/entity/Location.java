@@ -1,6 +1,10 @@
 package tech.mangosoft.autolinkedin.db.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 
@@ -10,6 +14,10 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Table(name = "location")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Location {
 
     @Id
@@ -23,27 +31,7 @@ public class Location {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "location", cascade = CascadeType.ALL)
     private List<LinkedInContact> linkedInContacts;
 
-
-    public Location() {
-    }
-
     public Location(String location) {
-        this.location = location;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
         this.location = location;
     }
 
