@@ -1,6 +1,5 @@
 package tech.mangosoft.autolinkedin;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import groovy.util.ConfigObject;
@@ -275,10 +274,10 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         }
     }
 
-    private void logOut() throws InterruptedException {
-        clickNavBar();
-        clickSignOut();
-    }
+//    private void logOut() throws InterruptedException {
+//        clickNavBar();
+//        clickSignOut();
+//    }
 
     private void clickNavBar() throws InterruptedException {
         List<WebElement> loginButtons = utils.fluentWait(By.id("nav-settings__dropdown-trigger"));
@@ -606,13 +605,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 Assignment assignmentDB = assignmentRepository.getById(assignment.getId());
                 assignmentDB.setStatus(Status.STATUS_ERROR);
                 assignmentRepository.save(assignmentDB);
-                try {
-                    this.logOut();
-                    return;
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                    return;
-                }
+                logoutWithQuitDriver();
             }
             errorContactId = contact.getId();
 
@@ -658,7 +651,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 error = e.getMessage();
                 System.out.println("Error:" + error);
                 e.printStackTrace();
-                logoutWithoutDrivers();
+                logoutWithQuitDriver();
             }
             try {
                 utils.randomSleep(10);
@@ -676,7 +669,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         Assignment assignmentDB = assignmentRepository.getById(assignment.getId());
         assignmentDB.setStatus(Status.STATUS_FINISHED);
         assignmentRepository.save(assignmentDB);
-        logoutWithoutDrivers();
+        logoutWithQuitDriver();
 
 //        SpringApplication.exit(context, () -> 0);
 //        return;
@@ -762,8 +755,8 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             Assignment assignment = assignmentRepository.getById(assignmentId);
             assignment.setStatus(Status.STATUS_FINISHED);
             assignmentRepository.save(assignment);
-            this.logOut();
-
+//            this.logOut();
+            logoutWithQuitDriver();
         } catch (InterruptedException | RuntimeException e) {
             error = e.getMessage();
             System.out.println("Error:" + error);
@@ -800,15 +793,15 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 parsingAndSavingContacts(assignment, account);
             }
 //            this.logOutSales();
-            logoutWithoutDrivers();
+            logoutWithQuitDriver();
         } catch (InterruptedException | RuntimeException e) {
             System.out.println("Error:" + e.getMessage());
             e.printStackTrace();
-            logoutWithoutDrivers();
+            logoutWithQuitDriver();
         }
     }
 
-    private void logoutWithoutDrivers() {
+    private void logoutWithQuitDriver() {
         driver = webDriverFactoryBean.getNewDriver(driver);
         utils.setDriver(driver);
     }
