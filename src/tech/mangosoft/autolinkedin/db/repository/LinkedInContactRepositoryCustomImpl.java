@@ -109,8 +109,13 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
         LinkedInContact linkedInContactDb = contactRepository.findFirstById(contact.getId());
         Assignment assignmentDb = assignmentRepository.getById(assignment.getId());
         if (linkedInContactDb != null && assignmentDb != null) {
+            //TODO fix it
+            assignmentDb.getContacts().add(linkedInContactDb);
             linkedInContactDb.addAssignment(assignmentDb);
             assignmentRepository.save(assignmentDb);
+
+//            linkedInContactDb.addAssignment(assignmentDb);
+//            assignmentRepository.save(assignmentDb);
         }
 
         if (contactProcessing == null) {

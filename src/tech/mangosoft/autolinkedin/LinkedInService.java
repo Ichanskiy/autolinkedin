@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import tech.mangosoft.autolinkedin.config.GlobalProperties;
 import tech.mangosoft.autolinkedin.controller.messages.StatisticResponse;
 import tech.mangosoft.autolinkedin.db.entity.Account;
 import tech.mangosoft.autolinkedin.db.entity.Assignment;
@@ -45,6 +46,12 @@ public class LinkedInService {
     private static final int STEP = 1;
     private static final String FIRST_ACCOUNT = "abaranovskiy1985@gmail.com";
     private static final String SECOND_ACCOUNT = "oleg.goncharenko@gmail.com";
+
+    private static final String ANTON = "abaranovskiy1985@gmail.com";
+    private static final String OLEG = "oleg.goncharenko@gmail.com";
+    private static final String ALLA = "agozur@gmail.com";
+    private static final String VITALIY = "vitaliksamoylenko@gmail.com";
+
     private static final String LOCATION = "Location";
     private static final String INDUSTRY = "Industry priority #1";
     private static final String POSITION = "Position";
@@ -70,11 +77,15 @@ public class LinkedInService {
     @Autowired
     private IAccountRepository accountRepository;
 
+    @Autowired
+    private GlobalProperties globalProperties;
+
     @Scheduled(cron = "0 0/1 * * * ?")
     public void precessingAssignment() {
-        Account account = accountRepository.getAccountByUsername(getAccountName());
-//        List<Assignment> assignmentList = assignmentRepository.findByStatusAndAccountOrderById(Status.STATUS_NEW, account);
-        List<Assignment> assignmentList = assignmentRepository.findAllByStatusOrderById(Status.STATUS_NEW);
+        Account account = accountRepository.getAccountByUsername(globalProperties.getEmail());
+        logger.info("Account = " + account.getUsername());
+        List<Assignment> assignmentList = assignmentRepository.findByStatusAndAccountOrderById(Status.STATUS_NEW, account);
+//        List<Assignment> assignmentList = assignmentRepository.findAllByStatusOrderById(Status.STATUS_NEW);
 //        List<Assignment> assignmentList = new ArrayList<>();
 //        assignmentList.add(assignmentRepository.getById(328L));
         for (Assignment assignment : assignmentList) {
