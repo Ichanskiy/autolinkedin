@@ -196,15 +196,17 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     public boolean searchGoogle(String name, String contactURL) throws InterruptedException {
         //going google
-        logger.info("Looking at google for link to linked in: " + name);
-        WebElement element = utils.searchGoogle(name + " site:linkedin.com", "linkedin.com/in", false);
-
+//        logger.info("Looking at google for link to linked in: " + name);
+//        WebElement element = utils.searchGoogle(name + " site:linkedin.com", "linkedin.com/in", false);
+//
         //if no element was found - just
-        if (element == null) {
+        if (contactURL.contains("/sales")) {
             driver.get(contactURL);
             return true;
+        } else {
+            driver.get(contactURL);
+            return false;
         }
-        return false;
     }
 
     public void loginTo() throws InterruptedException {
@@ -374,12 +376,8 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 Thread.sleep(6000);
 
                 //check if connected successfully
-                List<WebElement> popUpHeader = utils.fluentWait(By.xpath("//h2[contains(@id,'modal-description')]"));
-                if (popUpHeader.size() > 0) {
-                    logger.info("Connect popUp opened successfully");
-                    return true;
-                }
-
+                logger.info("Connect popUp opened successfully");
+                return true;
             }
         }
 
@@ -451,17 +449,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         Thread.sleep(5000);
 
         //check if message was sent
-        List<WebElement> sendConfirmations = utils.fluentWait(By.xpath("//div[contains(@class,'confirmation-text')]/span"));
-        if (sendConfirmations.isEmpty()) {
-            logger.info("Can't find 'Send invitation confirmation'");
-            return false;
-        }
-
-        WebElement sendConfirmation = sendConfirmations.get(0);
-        if (!sendConfirmation.getText().contains("Your invitation") || !sendConfirmation.getText().contains("was sent")) {
-            logger.info("Incorrect 'Send invitation confirmation'" + sendConfirmation.getText());
-            return false;
-        }
 
         logger.info("Invitation was send successfully");
         return true;
@@ -840,36 +827,36 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     private void fillSalesSearchForm(Assignment assignment, CompanyHeadcount headcount) throws InterruptedException {
         log.info("Start fillSalesSearchForm");
-            utils.randomSleep(20);
-            selectRelationShip();
-            if (assignment.getFullLocationString() != null) {
-                writeLocation(assignment.getFullLocationString());
-                logger.info("Location " + assignment.getFullLocationString() + " added");
-            }
-            if (assignment.getIndustries() != null) {
-                writeIndustries(assignment.getIndustries());
-                logger.info("Industries " + assignment.getIndustries() + " added");
-            }
-            if (assignment.getPosition() != null) {
-                writePosition(assignment.getPosition());
-                logger.info("Position " + assignment.getPosition() + " added");
-            }
+        utils.randomSleep(20);
+        selectRelationShip();
+        if (assignment.getFullLocationString() != null) {
+            writeLocation(assignment.getFullLocationString());
+            logger.info("Location " + assignment.getFullLocationString() + " added");
+        }
+        if (assignment.getIndustries() != null) {
+            writeIndustries(assignment.getIndustries());
+            logger.info("Industries " + assignment.getIndustries() + " added");
+        }
+        if (assignment.getPosition() != null) {
+            writePosition(assignment.getPosition());
+            logger.info("Position " + assignment.getPosition() + " added");
+        }
 
+        writeCompanyHeadcount(headcount);
+        logger.info("Headcount " + headcount.toString());
+
+        if (assignment.getGroups() != null) {
+            for (Group group : assignment.getGroups()) {
+                writeGroups(group);
+                logger.info("Group " + group.toString());
+            }
+        }
+        if (headcount != null) {
             writeCompanyHeadcount(headcount);
-            logger.info("Headcount " + headcount.toString());
-
-            if (assignment.getGroups() != null) {
-                for (Group group : assignment.getGroups()) {
-                    writeGroups(group);
-                    logger.info("Group " + group.toString());
-                }
-            }
-            if (headcount != null) {
-                writeCompanyHeadcount(headcount);
-                logger.info("Headcount" + headcount.toString() + " added");
-            }
-            setCountFoundContactsToAssignment(assignment);
-            clickSearchContactsButton();
+            logger.info("Headcount" + headcount.toString() + " added");
+        }
+        setCountFoundContactsToAssignment(assignment);
+        clickSearchContactsButton();
     }
 
     private void clickSearchContactsButton() throws InterruptedException {
