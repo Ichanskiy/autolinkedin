@@ -822,7 +822,8 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
             pagesAvailable = goToTheNextPageSales(0, assignment.getId());
             if (pagesAvailable) {
-                assignmentRepository.save(assignment.incrementPage());
+                Assignment byId = assignmentRepository.getById(assignment.getId());
+                assignmentRepository.save(byId.incrementPage());
             }
             grabbed.incrementAndGet();
         }

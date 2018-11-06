@@ -1,7 +1,5 @@
 package tech.mangosoft.autolinkedin.db.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import tech.mangosoft.autolinkedin.db.entity.enums.Status;
 import tech.mangosoft.autolinkedin.db.entity.enums.Task;
 
@@ -193,8 +191,12 @@ public class Assignment {
         return page;
     }
 
-    public Assignment incrementPage(){
-        this.page += 1;
+    public Assignment incrementPage() {
+        if (this.page == null) {
+            this.page = 0;
+        } else {
+            this.page += 1;
+        }
         return this;
     }
 
