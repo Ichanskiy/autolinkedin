@@ -193,6 +193,11 @@ public class Assignment {
         return page;
     }
 
+    public Assignment incrementPage(){
+        this.page += 1;
+        return this;
+    }
+
     public Assignment setPage(int page) {
         this.page = page;
         return this;

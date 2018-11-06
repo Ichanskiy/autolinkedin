@@ -800,11 +800,11 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             assignment.setPage(0);
         }
         if (assignment.getPage().intValue() != 0) {
-            goToTheNextPage(assignment.getPage(), assignment.getId());
+            goToTheNextPageSales(assignment.getPage(), assignment.getId());
         }
         while (pagesAvailable && canExecute) {
             StringBuffer buf = stringWriter.getBuffer();
-            buf.setLength(0);
+            buf .setLength(0);
             canExecute = checkGrabbingLimit(currentAccount, assignment.getId());
             List<LinkedInContact> contacts = extractLinkedInContactsOnPageSales();
             if (contacts != null) {
@@ -821,6 +821,9 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                     contacts, reports.get(reports.size() - 1).getId(), buf.toString());
 
             pagesAvailable = goToTheNextPageSales(0, assignment.getId());
+            if (pagesAvailable) {
+                assignmentRepository.save(assignment.incrementPage());
+            }
             grabbed.incrementAndGet();
         }
     }
@@ -1404,8 +1407,8 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         ((JavascriptExecutor) driver)
                 .executeScript("window.scrollTo(0, document.body.scrollHeight)");
         utils.randomSleep(4);
-        List<WebElement> searchResults = utils.fluentWait(By.xpath("//ol[contains(@class,'search-results')]/li"));
-        searchResults.addAll(utils.fluentWait(By.xpath("//ol[contains(@class,'search-results')]/div/li")));
+        List<WebElement> searchResults = utils.fluentWait(By.xpath("//ol[contains(@class,'search-results__result-list')]/li"));
+        searchResults.addAll(utils.fluentWait(By.xpath("//ol[contains(@class,'search-results__result-list')]/div/li")));
         if (searchResults.isEmpty()) {
             log.error("No results found");
             return null;
@@ -1436,8 +1439,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 String companySite = elementCompanySite.get(0).getAttribute("href");
                 linkedInContact.setCompanyWebsite(companySite);
             } else {
-                ((JavascriptExecutor) driver).executeScript("window.scrollTo(0, document.body.scrollHeight)");
-                utils.randomSleep(4);
                 List<WebElement> searchListCompanies = driver.findElements(By.xpath("//ol[contains(@class,'search-results__result-list')]/li"));
 
                 if (!searchListCompanies.isEmpty()) {
@@ -1479,6 +1480,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         }
         log.info("Pages found");
         if (page == 0) {
+            //TODO: Need fix click if small window ( fail click on block HELP? )
             List<WebElement> nextPage = utils.fluentWait(By.xpath("//button[contains(@class, 'next')]"));
             if (!nextPage.isEmpty()) {
                 if (nextPage.get(0).isEnabled()) {
