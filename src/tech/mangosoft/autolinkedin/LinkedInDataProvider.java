@@ -846,8 +846,8 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             logger.info("Position " + assignment.getPosition() + " added");
         }
 
-        writeCompanyHeadcount(headcount);
-        logger.info("Headcount " + headcount.toString());
+//        writeCompanyHeadcount(headcount);
+//        logger.info("Headcount " + headcount.toString());
 
         if (assignment.getGroups() != null) {
             for (Group group : assignment.getGroups()) {
