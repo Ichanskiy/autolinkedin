@@ -834,15 +834,15 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         utils.randomSleep(20);
         selectRelationShip();
         if (assignment.getFullLocationString() != null) {
-            writeLocation(assignment.getFullLocationString());
+            writeLocation(assignment);
             logger.info("Location " + assignment.getFullLocationString() + " added");
         }
         if (assignment.getIndustries() != null) {
-            writeIndustries(assignment.getIndustries());
+            writeIndustries(assignment);
             logger.info("Industries " + assignment.getIndustries() + " added");
         }
         if (assignment.getPosition() != null) {
-            writePosition(assignment.getPosition());
+            writePosition(assignment);
             logger.info("Position " + assignment.getPosition() + " added");
         }
 
@@ -850,13 +850,11 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 //        logger.info("Headcount " + headcount.toString());
 
         if (assignment.getGroups() != null) {
-            for (Group group : assignment.getGroups()) {
-                writeGroups(group);
-                logger.info("Group " + group.toString());
-            }
+            writeGroups(assignment);
+            logger.info("Group added");
         }
         if (headcount != null) {
-            writeCompanyHeadcount(headcount);
+            writeCompanyHeadcount(assignment, headcount);
             logger.info("Headcount" + headcount.toString() + " added");
         }
         setCountFoundContactsToAssignment(assignment);
@@ -873,7 +871,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         utils.randomSleep(10);
     }
 
-    private void writeCompanyHeadcount(CompanyHeadcount headcount) throws InterruptedException {
+    private void writeCompanyHeadcount(Assignment assignment, CompanyHeadcount headcount) throws InterruptedException {
 
         List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap\")]"));
         if (!search.isEmpty()) {
@@ -890,30 +888,56 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             builder.moveToElement(search.get(15)).moveByOffset(0, headcountMap.get(headcount.getId().intValue()))
                     .click().build().perform();
             utils.randomSleep(4);
+            List<WebElement> listValidator = search.get(15).findElements(By.xpath("//span[contains(@class, 'artdeco-pill-label-text']"));
+            if(listValidator.isEmpty()){
+                builder.moveToElement(search.get(15)).moveByOffset(0, headcountMap.get(headcount.getId().intValue())).click().build().perform();
+                utils.randomSleep(4);
+            }
+            listValidator = search.get(15).findElements(By.xpath("//span[contains(@class, 'artdeco-pill-label-text']"));
+            if(listValidator.isEmpty()){
+                assignment.setStatus(Status.STATUS_ERROR);
+                assignmentRepository.save(assignment);
+                logoutWithQuitDriver();
+            }
         }
     }
 
 
-    private void writeGroups(Group group) throws InterruptedException {
+    private void writeGroups(Assignment assignment) throws InterruptedException {
 
         List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap\")]"));
-
         if (!search.isEmpty()) {
-            utils.mouseMoveToElement(search.get(19));
-            utils.randomSleep(4);
-            search.get(19).click();
-            List<WebElement> searchField = utils.fluentWait(By.xpath("//input[contains(@placeholder, \"Find people in groups\")]"));
-            if (!searchField.isEmpty()) {
-                utils.mouseMoveToElement(searchField.get(0));
+            for(Group group : assignment.getGroups()){
+                utils.mouseMoveToElement(search.get(19));
                 utils.randomSleep(4);
-                searchField.get(0).click();
+                search.get(19).click();
+                List<WebElement> searchField = utils.fluentWait(By.xpath("//input[contains(@placeholder, \"Find people in groups\")]"));
+                if (!searchField.isEmpty()) {
+                    utils.mouseMoveToElement(searchField.get(0));
+                    utils.randomSleep(4);
+                    searchField.get(0).click();
+                }
+                searchField.get(0).sendKeys(group.getName());
+                utils.randomSleep(4);
+                Actions builder = new Actions(driver);
+                builder.moveToElement(searchField.get(0)).moveByOffset(0, 40).click().build().perform();
+                utils.randomSleep(4);
+                List<WebElement> listValidator = search.get(19).findElements(By.xpath("//span[text() = '" + group.getName() + "']"));
+                if(listValidator.isEmpty()){
+                    searchField.get(0).sendKeys(group.getName());
+                    utils.randomSleep(4);
+                    builder.moveToElement(searchField.get(0)).moveByOffset(0, 40).click().build().perform();
+                    utils.randomSleep(4);
+                }
+                listValidator = search.get(19).findElements(By.xpath("//span[text() = '" + group.getName() + "']"));
+                if(listValidator.isEmpty()){
+                    assignment.setStatus(Status.STATUS_ERROR);
+                    assignmentRepository.save(assignment);
+                    logoutWithQuitDriver();
+                }
             }
-            searchField.get(0).sendKeys(group.getName());
-            utils.randomSleep(4);
-            Actions builder = new Actions(driver);
-            builder.moveToElement(searchField.get(0)).moveByOffset(0, 40).click().build().perform();
-            utils.randomSleep(4);
         }
+
     }
 
     private void selectRelationShip() throws InterruptedException {
@@ -933,7 +957,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     }
 
 
-    private void writeLocation(String location) throws InterruptedException {
+    private void writeLocation(Assignment assignment) throws InterruptedException {
         List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap cursor-pointer\")]"));
         if (!search.isEmpty()) {
             utils.mouseMoveToElement(search.get(1));
@@ -945,15 +969,28 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 utils.randomSleep(4);
                 searchField.get(0).click();
             }
-            searchField.get(0).sendKeys(location);
+            searchField.get(0).sendKeys(assignment.getFullLocationString());
             utils.randomSleep(4);
             Actions builder = new Actions(driver);
             builder.moveToElement(searchField.get(0)).moveByOffset(0, 40).click().build().perform();
             utils.randomSleep(4);
+            List<WebElement> listValidator = search.get(1).findElements(By.xpath("//span[text() = '" + assignment.getFullLocationString() + "']"));
+            if(listValidator.isEmpty()){
+                searchField.get(0).sendKeys(assignment.getFullLocationString());
+                utils.randomSleep(4);
+                builder.moveToElement(searchField.get(0)).moveByOffset(0, 40).click().build().perform();
+                utils.randomSleep(4);
+            }
+            listValidator = search.get(1).findElements(By.xpath("//span[text() = '" + assignment.getFullLocationString() + "']"));
+            if(listValidator.isEmpty()){
+                assignment.setStatus(Status.STATUS_ERROR);
+                assignmentRepository.save(assignment);
+                logoutWithQuitDriver();
+            }
         }
     }
 
-    private void writeIndustries(String industries) throws InterruptedException {
+    private void writeIndustries(Assignment assignment) throws InterruptedException {
         List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap\")]"));
         if (!search.isEmpty()) {
             utils.mouseMoveToElement(search.get(3));
@@ -965,15 +1002,28 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 utils.randomSleep(4);
                 searchField.get(0).click();
             }
-            searchField.get(0).sendKeys(industries);
+            searchField.get(0).sendKeys(assignment.getIndustries());
             utils.randomSleep(4);
             Actions builder = new Actions(driver);
             builder.moveToElement(searchField.get(0)).moveByOffset(0, 40).click().build().perform();
             utils.randomSleep(4);
+            List<WebElement> listValidator = search.get(3).findElements(By.xpath("//span[text() = '" + assignment.getIndustries() + "']"));
+            if(listValidator.isEmpty()){
+                searchField.get(0).sendKeys(assignment.getIndustries());
+                utils.randomSleep(4);
+                builder.moveToElement(searchField.get(0)).moveByOffset(0, 40).click().build().perform();
+                utils.randomSleep(4);
+            }
+            listValidator = search.get(3).findElements(By.xpath("//span[text() = '" + assignment.getIndustries() + "']"));
+            if(listValidator.isEmpty()){
+                assignment.setStatus(Status.STATUS_ERROR);
+                assignmentRepository.save(assignment);
+                logoutWithQuitDriver();
+            }
         }
     }
 
-    private void writePosition(String position) throws InterruptedException {
+    private void writePosition(Assignment assignment) throws InterruptedException {
         List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap\")]"));
         if (!search.isEmpty()) {
             utils.mouseMoveToElement(search.get(12));
@@ -985,9 +1035,21 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 utils.randomSleep(4);
                 searchField.get(0).click();
             }
-            searchField.get(0).sendKeys(position);
+            searchField.get(0).sendKeys(assignment.getPosition());
             searchField.get(0).sendKeys(Keys.ENTER);
             utils.randomSleep(4);
+            List<WebElement> listValidator = search.get(12).findElements(By.xpath("//span[text() = '" + assignment.getPosition() + "']"));
+            if(listValidator.isEmpty()){
+                searchField.get(0).sendKeys(assignment.getPosition());
+                searchField.get(0).sendKeys(Keys.ENTER);
+                utils.randomSleep(4);
+            }
+            listValidator = search.get(12).findElements(By.xpath("//span[text() = '" + assignment.getPosition() + "']"));
+            if(listValidator.isEmpty()){
+                assignment.setStatus(Status.STATUS_ERROR);
+                assignmentRepository.save(assignment);
+                logoutWithQuitDriver();
+            }
         }
     }
 
