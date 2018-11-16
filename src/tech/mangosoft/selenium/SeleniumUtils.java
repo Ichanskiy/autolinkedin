@@ -3,6 +3,7 @@ package tech.mangosoft.selenium;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
@@ -16,6 +17,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
@@ -41,6 +43,75 @@ public class SeleniumUtils {
 
     public void randomSleep(int sleep) throws InterruptedException {
         Thread.sleep(ThreadLocalRandom.current().nextLong(500L * sleep, 1000L * sleep));
+    }
+
+    public List<String> openTabAndDoRedirect(final String url) throws InterruptedException{
+        ((JavascriptExecutor) driver).executeScript("window.open()");
+        List<String> tabs = new ArrayList<>(driver.getWindowHandles());
+        driver.switchTo().window(tabs.get(1));
+        randomSleep(2);
+        driver.get(url);
+        randomSleep(4);
+        return tabs;
+    }
+
+    public WebElement findElementsAndGetFirst(final By by, final WebElement parent){
+        List<WebElement> elements;
+
+        if(parent != null){
+            elements = parent.findElements(by);
+        }else{
+            elements = driver.findElements(by);
+        }
+
+        if(!elements.isEmpty()){
+            return elements.get(0);
+        }else{
+            return null;
+        }
+    }
+
+    public WebElement findElementsAndGetByIndex(final By by, final WebElement parent, final int index){
+        List<WebElement> elements;
+
+        if(parent != null){
+            elements = parent.findElements(by);
+        }else{
+            elements = driver.findElements(by);
+        }
+
+        if(!elements.isEmpty()){
+            if(elements.size() > index){
+                return elements.get(index);
+            }else{
+                return null;
+            }
+        }else{
+            return null;
+        }
+    }
+
+    public Optional<String> findTextOrExtractValue(final By by, final WebElement parent, final String attribute){
+        WebElement element;
+
+        if(parent != null){
+            element = findElementsAndGetFirst(by, parent);
+        }else{
+            element = findElementsAndGetFirst(by, null);
+        }
+
+        if (element == null) {
+            log.error("No text was found for: " + by.toString());
+            return Optional.empty();
+        }
+
+        String result = null;
+        if (attribute == null) {
+            result = element.getText();
+        } else {
+            result = element.getAttribute(attribute);
+        }
+        return Optional.ofNullable(result);
     }
 
     public List<WebElement> fluentWait(final By locator) {

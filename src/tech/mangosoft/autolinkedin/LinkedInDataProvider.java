@@ -50,17 +50,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     private static Logger log = LogManager.getRootLogger();
     private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(LinkedInDataProvider.class.getName());
     private static StringWriter stringWriter = new StringWriter();
-    private static Map<Integer, Integer> headcountMap = new HashMap<>();
-
-    {
-        headcountMap.put(1, 60);
-        headcountMap.put(11, 70);
-        headcountMap.put(51, 90);
-        headcountMap.put(201, 110);
-        headcountMap.put(501, 130);
-        headcountMap.put(101, 150);
-        headcountMap.put(1001, 170);
-    }
 
     @Autowired
     private WebDriver driver;
@@ -765,7 +754,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         try {
             this.loginTo();
             driver.get("https://www.linkedin.com/sales/search/people?viewAllFilters=true");
-            Thread.sleep(12000);
+            Thread.sleep(8000);
             logger.info("Click SearchForLeads successfully");
 
             if (!CollectionUtils.isEmpty(assignment.getHeadcounts())) {
@@ -773,7 +762,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                     fillSalesSearchForm(assignment, headcount);
                     parsingAndSavingContacts(assignment, account);
                     driver.get("https://www.linkedin.com/sales/search/people?viewAllFilters=true");
-                    Thread.sleep(12000);
+                    Thread.sleep(8000);
                 }
             } else {
                 fillSalesSearchForm(assignment, null);
@@ -831,243 +820,192 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     private void fillSalesSearchForm(Assignment assignment, CompanyHeadcount headcount) throws InterruptedException {
         log.info("Start fillSalesSearchForm");
-        utils.randomSleep(20);
-        selectRelationShip();
-        if (assignment.getFullLocationString() != null) {
-            writeLocation(assignment);
-            logger.info("Location " + assignment.getFullLocationString() + " added");
-        }
-        if (assignment.getIndustries() != null) {
-            writeIndustries(assignment);
-            logger.info("Industries " + assignment.getIndustries() + " added");
-        }
-        if (assignment.getPosition() != null) {
-            writePosition(assignment);
-            logger.info("Position " + assignment.getPosition() + " added");
-        }
+        utils.randomSleep(5);
+        List<WebElement> search = driver.findElements(By.xpath("//div[contains(@class, 'flex pt4 ph4 pb3 flex-wrap')]"));
+        if(!search.isEmpty()){
+            selectRelationShip(search.get(2));
+            if (assignment.getFullLocationString() != null) {
+                writeLocation(search.get(1), assignment);
+                logger.info("Location " + assignment.getFullLocationString() + " added");
+            }
 
-//        writeCompanyHeadcount(headcount);
-//        logger.info("Headcount " + headcount.toString());
+            if (assignment.getIndustries() != null) {
+                writeIndustries(search.get(3), assignment);
+                logger.info("Industries " + assignment.getIndustries() + " added");
+            }
 
-        if (assignment.getGroups() != null) {
-            writeGroups(assignment);
-            logger.info("Group added");
+            if (assignment.getPosition() != null) {
+                writePosition(search.get(12), assignment);
+                logger.info("Position " + assignment.getPosition() + " added");
+            }
+
+            if (assignment.getGroups() != null) {
+                writeGroups(search.get(19), assignment);
+                logger.info("Group added");
+            }
+
+            if (headcount != null) {
+                writeCompanyHeadcount(search.get(15), assignment, headcount);
+                logger.info("Headcount" + headcount.toString() + " added");
+            }
+
+            setCountFoundContactsToAssignment(assignment);
+            clickSearchContactsButton();
         }
-        if (headcount != null) {
-            writeCompanyHeadcount(assignment, headcount);
-            logger.info("Headcount" + headcount.toString() + " added");
-        }
-        setCountFoundContactsToAssignment(assignment);
-        clickSearchContactsButton();
     }
 
     private void clickSearchContactsButton() throws InterruptedException {
-        List<WebElement> allFiltersButtons = utils.fluentWait(By.xpath("//button[contains(@class,'button-primary-medium')]"));
-        if (allFiltersButtons.isEmpty()) {
+        WebElement searchButton = utils.findElementsAndGetFirst(By.xpath("//button[contains(@data-control-name,'advanced_search_profile')]"), null);
+        if (searchButton != null) {
+            searchButton.click();
+            utils.randomSleep(5);
+        }else{
             log.error("Can't find Search Contacts Button");
             return;
         }
-        allFiltersButtons.get(0).click();
-        utils.randomSleep(10);
     }
 
-    private void writeCompanyHeadcount(Assignment assignment, CompanyHeadcount headcount) throws InterruptedException {
-
-        List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap\")]"));
-        if (!search.isEmpty()) {
-
-            utils.mouseMoveToElement(search.get(21));
-            utils.randomSleep(10);
-            search.get(21).click();
-
-            utils.mouseMoveToElement(search.get(15));
-            utils.randomSleep(10);
-            search.get(15).click();
-            Actions builder = new Actions(driver);
-            utils.randomSleep(10);
-            builder.moveToElement(search.get(15)).moveByOffset(0, headcountMap.get(headcount.getId().intValue()))
-                    .click().build().perform();
-            utils.randomSleep(4);
-            List<WebElement> listValidator = search.get(15).findElements(By.xpath("//span[contains(@class, 'artdeco-pill-label-text']"));
-            if(listValidator.isEmpty()){
-                builder.moveToElement(search.get(15)).moveByOffset(0, headcountMap.get(headcount.getId().intValue())).click().build().perform();
+    private void writeCompanyHeadcount(WebElement headcountElement, Assignment assignment, CompanyHeadcount headcount) throws InterruptedException {
+        headcountElement.click();
+        utils.randomSleep(3);
+        List<WebElement> elements = headcountElement.findElements(By.xpath("//ol[contains(@class, 'search-filter-typeahead__list')]//a"));
+        if(!elements.isEmpty()){
+            WebElement element = elements.stream().filter(e -> e.getText().equalsIgnoreCase(headcount.getHeadcount())).findFirst().orElse(null);
+            if(element != null){
+                element.click();
                 utils.randomSleep(4);
             }
-            listValidator = search.get(15).findElements(By.xpath("//span[contains(@class, 'artdeco-pill-label-text']"));
-            if(listValidator.isEmpty()){
+
+            WebElement selectedValue = utils.findElementsAndGetFirst(By.xpath("//ul[contains(@class, 'ph4 pb2 list-style-none flex flex-wrap')]//li"), headcountElement);
+            if(selectedValue == null){
                 assignment.setStatus(Status.STATUS_ERROR);
                 assignmentRepository.save(assignment);
-                logoutWithQuitDriver();
+                throw new InterruptedException("Invalid headcount: " + headcount.toString());
             }
         }
     }
 
 
-    private void writeGroups(Assignment assignment) throws InterruptedException {
-
-        List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap\")]"));
-        if (!search.isEmpty()) {
-            for(Group group : assignment.getGroups()){
-                utils.mouseMoveToElement(search.get(19));
-                utils.randomSleep(4);
-                search.get(19).click();
-                List<WebElement> searchField = utils.fluentWait(By.xpath("//input[contains(@placeholder, \"Find people in groups\")]"));
-                if (!searchField.isEmpty()) {
-                    utils.mouseMoveToElement(searchField.get(0));
-                    utils.randomSleep(4);
-                    searchField.get(0).click();
-                }
-                searchField.get(0).sendKeys(group.getName());
-                utils.randomSleep(4);
-                Actions builder = new Actions(driver);
-                builder.moveToElement(searchField.get(0)).moveByOffset(0, 40).click().build().perform();
-                utils.randomSleep(4);
-                List<WebElement> listValidator = search.get(19).findElements(By.xpath("//span[text() = '" + group.getName() + "']"));
-                if(listValidator.isEmpty()){
-                    searchField.get(0).sendKeys(group.getName());
-                    utils.randomSleep(4);
-                    builder.moveToElement(searchField.get(0)).moveByOffset(0, 40).click().build().perform();
-                    utils.randomSleep(4);
-                }
-                listValidator = search.get(19).findElements(By.xpath("//span[text() = '" + group.getName() + "']"));
-                if(listValidator.isEmpty()){
+    private void writeGroups(WebElement groupElement, Assignment assignment) throws InterruptedException {
+        groupElement.click();
+        WebElement searchField = utils.findElementsAndGetFirst(By.xpath("//input[contains(@placeholder, 'Find people in groups')]"), groupElement);
+        if (searchField != null) {
+            for(Group group : assignment.getGroups()) {
+                searchField.click();
+                searchField.sendKeys(group.getName());
+                utils.randomSleep(3);
+                WebElement selectedValue = utils.findElementsAndGetFirst(By.xpath("//ol[contains(@class, 'search-filter-typeahead__list')]//a"), groupElement);
+                if(selectedValue != null){
+                    selectedValue.click();
+                    utils.randomSleep(3);
+                }else{
                     assignment.setStatus(Status.STATUS_ERROR);
                     assignmentRepository.save(assignment);
-                    logoutWithQuitDriver();
+                    throw new InterruptedException("Invalid group: " + group.getName());
                 }
             }
         }
-
     }
 
-    private void selectRelationShip() throws InterruptedException {
-        List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap\")]"));
-        if (!search.isEmpty()) {
-            utils.mouseMoveToElement(search.get(2));
-            utils.randomSleep(4);
-            search.get(2).click();
-            Actions builder = new Actions(driver);
-            builder.moveToElement(search.get(2)).moveByOffset(0, 40).click().build().perform();
-            utils.randomSleep(4);
-            builder.moveToElement(search.get(2)).moveByOffset(0, 70).click().build().perform();
-            utils.randomSleep(4);
-            builder.moveToElement(search.get(2)).moveByOffset(0, 140).click().build().perform();
-            utils.randomSleep(4);
+    private void selectRelationShip(WebElement relationShipElement) throws InterruptedException {
+        relationShipElement.click();
+        utils.randomSleep(2);
+        WebElement element = utils.findElementsAndGetFirst(
+                By.xpath("//ol[contains(@class, 'search-filter-typeahead__list')]//a"), relationShipElement);
+        if(element != null) {
+            element.click();
+            utils.randomSleep(3);
+        }
+        element = utils.findElementsAndGetFirst(
+                By.xpath("//ol[contains(@class, 'search-filter-typeahead__list')]//a"), relationShipElement);
+
+        if(element != null){
+            element.click();
+            utils.randomSleep(3);
+        }
+        element = utils.findElementsAndGetByIndex(
+                By.xpath("//ol[contains(@class, 'search-filter-typeahead__list')]//a"), relationShipElement, 1);
+
+        if(element != null){
+            element.click();
+            utils.randomSleep(3);
         }
     }
 
 
-    private void writeLocation(Assignment assignment) throws InterruptedException {
-        List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap cursor-pointer\")]"));
-        if (!search.isEmpty()) {
-            utils.mouseMoveToElement(search.get(1));
-            utils.randomSleep(4);
-            search.get(1).click();
-            List<WebElement> searchField = utils.fluentWait(By.xpath("//input[contains(@placeholder, \"Add locations\")]"));
-            if (!searchField.isEmpty()) {
-                utils.mouseMoveToElement(searchField.get(0));
-                utils.randomSleep(4);
-                searchField.get(0).click();
-            }
-            searchField.get(0).sendKeys(assignment.getFullLocationString());
-            utils.randomSleep(4);
-            Actions builder = new Actions(driver);
-            builder.moveToElement(searchField.get(0)).moveByOffset(0, 40).click().build().perform();
-            utils.randomSleep(4);
-            List<WebElement> listValidator = search.get(1).findElements(By.xpath("//span[text() = '" + assignment.getFullLocationString() + "']"));
-            if(listValidator.isEmpty()){
-                searchField.get(0).sendKeys(assignment.getFullLocationString());
-                utils.randomSleep(4);
-                builder.moveToElement(searchField.get(0)).moveByOffset(0, 40).click().build().perform();
-                utils.randomSleep(4);
-            }
-            listValidator = search.get(1).findElements(By.xpath("//span[text() = '" + assignment.getFullLocationString() + "']"));
-            if(listValidator.isEmpty()){
+    private void writeLocation(WebElement locationElement, Assignment assignment) throws InterruptedException {
+        locationElement.click();
+        utils.randomSleep(3);
+        WebElement searchField = utils.findElementsAndGetFirst(By.xpath("//input[contains(@placeholder, 'Add locations')]"), locationElement);
+        if (searchField != null) {
+            searchField.click();
+            searchField.sendKeys(assignment.getFullLocationString());
+            utils.randomSleep(3);
+
+            WebElement selectedValue = utils.findElementsAndGetFirst(By.xpath("//ol[contains(@class, 'search-filter-typeahead__list')]//a"), locationElement);
+            if(selectedValue != null){
+                selectedValue.click();
+                utils.randomSleep(3);
+            }else{
                 assignment.setStatus(Status.STATUS_ERROR);
                 assignmentRepository.save(assignment);
-                logoutWithQuitDriver();
+                throw new InterruptedException("Invalid location: " + assignment.getFullLocationString());
             }
         }
     }
 
-    private void writeIndustries(Assignment assignment) throws InterruptedException {
-        List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap\")]"));
-        if (!search.isEmpty()) {
-            utils.mouseMoveToElement(search.get(3));
-            utils.randomSleep(4);
-            search.get(3).click();
-            List<WebElement> searchField = utils.fluentWait(By.xpath("//input[contains(@placeholder, \"Add industries\")]"));
-            if (!searchField.isEmpty()) {
-                utils.mouseMoveToElement(searchField.get(0));
-                utils.randomSleep(4);
-                searchField.get(0).click();
-            }
-            searchField.get(0).sendKeys(assignment.getIndustries());
-            utils.randomSleep(4);
-            Actions builder = new Actions(driver);
-            builder.moveToElement(searchField.get(0)).moveByOffset(0, 40).click().build().perform();
-            utils.randomSleep(4);
-            List<WebElement> listValidator = search.get(3).findElements(By.xpath("//span[text() = '" + assignment.getIndustries() + "']"));
-            if(listValidator.isEmpty()){
-                searchField.get(0).sendKeys(assignment.getIndustries());
-                utils.randomSleep(4);
-                builder.moveToElement(searchField.get(0)).moveByOffset(0, 40).click().build().perform();
-                utils.randomSleep(4);
-            }
-            listValidator = search.get(3).findElements(By.xpath("//span[text() = '" + assignment.getIndustries() + "']"));
-            if(listValidator.isEmpty()){
+    private void writeIndustries(WebElement industryElement, Assignment assignment) throws InterruptedException {
+        industryElement.click();
+        utils.randomSleep(3);
+        WebElement searchField = utils.findElementsAndGetFirst(By.xpath("//input[contains(@placeholder, 'Add industries')]"), industryElement);
+        if (searchField != null) {
+            searchField.click();
+            searchField.sendKeys(assignment.getIndustries());
+            utils.randomSleep(3);
+
+            WebElement selectedValue = utils.findElementsAndGetFirst(By.xpath("//ol[contains(@class, 'search-filter-typeahead__list')]//a"), industryElement);
+            if(selectedValue != null){
+                selectedValue.click();
+                utils.randomSleep(3);
+            }else{
                 assignment.setStatus(Status.STATUS_ERROR);
                 assignmentRepository.save(assignment);
-                logoutWithQuitDriver();
+                throw new InterruptedException("Invalid industry: " + assignment.getIndustries());
             }
         }
     }
 
-    private void writePosition(Assignment assignment) throws InterruptedException {
-        List<WebElement> search = utils.fluentWait(By.xpath("//div[contains(@class, \"flex pt4 ph4 pb3 flex-wrap\")]"));
-        if (!search.isEmpty()) {
-            utils.mouseMoveToElement(search.get(12));
-            utils.randomSleep(4);
-            search.get(12).click();
-            List<WebElement> searchField = utils.fluentWait(By.xpath("//input[contains(@placeholder, \"Add titles\")]"));
-            if (!searchField.isEmpty()) {
-                utils.mouseMoveToElement(searchField.get(0));
-                utils.randomSleep(4);
-                searchField.get(0).click();
-            }
-            searchField.get(0).sendKeys(assignment.getPosition());
-            searchField.get(0).sendKeys(Keys.ENTER);
-            utils.randomSleep(4);
-            List<WebElement> listValidator = search.get(12).findElements(By.xpath("//span[text() = '" + assignment.getPosition() + "']"));
-            if(listValidator.isEmpty()){
-                searchField.get(0).sendKeys(assignment.getPosition());
-                searchField.get(0).sendKeys(Keys.ENTER);
-                utils.randomSleep(4);
-            }
-            listValidator = search.get(12).findElements(By.xpath("//span[text() = '" + assignment.getPosition() + "']"));
-            if(listValidator.isEmpty()){
+    private void writePosition(WebElement positionElement, Assignment assignment) throws InterruptedException {
+        positionElement.click();
+        WebElement searchField = utils.findElementsAndGetFirst(By.xpath("//input[contains(@placeholder, 'Add titles')]"), positionElement);
+        if (searchField != null) {
+            searchField.click();
+            searchField.sendKeys(assignment.getPosition());
+            searchField.sendKeys(Keys.ENTER);
+            utils.randomSleep(3);
+
+            WebElement selectedValue = utils.findElementsAndGetFirst(By.xpath("//ul[contains(@class, 'ph4 pb2 list-style-none flex flex-wrap')]//li"), positionElement);
+            if(selectedValue == null){
                 assignment.setStatus(Status.STATUS_ERROR);
                 assignmentRepository.save(assignment);
-                logoutWithQuitDriver();
+                throw new InterruptedException("Invalid position: " + assignment.getPosition());
             }
         }
     }
 
     private void setCountFoundContactsToAssignment(Assignment assignment) {
-        List<WebElement> search = utils.fluentWait(By.xpath("//span[contains(@class, \"ph2\")]"));
-        if (!search.isEmpty()) {
-            String count = utils.findTextAndExtractValue(By.xpath("//span[contains(@class, \"ph2\")]"), search.get(0))
-                    .orElse(null);
-            if (count != null) {
-                count = count.replaceAll("[^0-9?!\\.]", "");
-                Assignment assignmentDb = assignmentRepository.getById(assignment.getId());
-                if (assignmentDb.getCountsFound() != null) {
-                    assignmentDb.setCountsFound(assignmentDb.getCountsFound() + Integer.valueOf(count));
-                } else {
-                    assignmentDb.setCountsFound(Integer.valueOf(count));
-                }
-                assignmentRepository.save(assignmentDb);
+        String count = utils.findTextOrExtractValue(
+                By.xpath("//span[contains(@class, 'ph2')]//b"), null, null).orElse(null);
+        if (count != null) {
+            count = count.replaceAll("[^0-9]+", "");
+            Assignment assignmentDb = assignmentRepository.getById(assignment.getId());
+            if (assignmentDb.getCountsFound() != null) {
+                assignmentDb.setCountsFound(assignmentDb.getCountsFound() + Integer.valueOf(count));
+            } else {
+                assignmentDb.setCountsFound(Integer.valueOf(count));
             }
+            assignmentRepository.save(assignmentDb);
+
         }
     }
 
@@ -1490,33 +1428,26 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     private void getCompanySiteByLinkedInContact(LinkedInContact linkedInContact) {
         try {
-            ((JavascriptExecutor) driver).executeScript("window.open()");
-            ArrayList<String> tabs = new ArrayList<String>(driver.getWindowHandles());
-            driver.switchTo().window(tabs.get(1));
-            utils.randomSleep(1);
-            driver.get(linkedInContact.getCompanyLinkedin());
+            List<String> tabs = utils.openTabAndDoRedirect(linkedInContact.getCompanyLinkedin());
             logger.info("Link " + linkedInContact.getCompanyLinkedin() + " opened successfully");
-            Thread.sleep(7000);
-            List<WebElement> elementCompanySite = driver.findElements(By.xpath("//a[@data-control-name='topcard_website']"));
-            if (!elementCompanySite.isEmpty()) {
-                String companySite = elementCompanySite.get(0).getAttribute("href");
+            String companySite = utils.findTextOrExtractValue(By.xpath("//a[@data-control-name='topcard_website']"),
+                    null, "href").orElse(null);
+            if (companySite != null) {
                 linkedInContact.setCompanyWebsite(companySite);
             } else {
-                List<WebElement> searchListCompanies = driver.findElements(By.xpath("//ol[contains(@class,'search-results__result-list')]/li"));
-
-                if (!searchListCompanies.isEmpty()) {
-
-                    String linkOnCompany = utils.findTextAndExtractValue(
-                            By.xpath(".//dt[contains(@class,'name')]/a"),
-                            searchListCompanies.get(0), "href").orElse(null);
+                WebElement findedCompany = utils.findElementsAndGetFirst(By.xpath("//ol[contains(@class,'search-results__result-list')]/li"), null);
+                if (findedCompany != null) {
+                    String linkOnCompany = utils.findTextOrExtractValue(By.xpath(".//dt[contains(@class,'name')]/a"),
+                            findedCompany, "href").orElse(null);
 
                     if (linkOnCompany != null) {
                         linkedInContact.setCompanyLinkedin(linkOnCompany);
                         driver.get(linkedInContact.getCompanyLinkedin());
-                        Thread.sleep(7000);
-                        List<WebElement> elementsSite = driver.findElements(By.xpath("//a[@data-control-name='topcard_website']"));
-                        if (!elementsSite.isEmpty()) {
-                            String companySite = elementsSite.get(0).getAttribute("href");
+                        utils.randomSleep(4);
+
+                        companySite = utils.findTextOrExtractValue(By.xpath("//a[@data-control-name='topcard_website']"),
+                                null, "href").orElse(null);
+                        if (companySite != null) {
                             linkedInContact.setCompanyWebsite(companySite);
                         }
                     }
