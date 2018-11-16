@@ -523,7 +523,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             if (contact == null) {
                 logger.info("CONTACT IS NULL");
                 Assignment assignmentDB = assignmentRepository.getById(assignment.getId());
-                assignmentDB.setStatus(Status.STATUS_ERROR);
+                assignmentDB.setStatus(Status.STATUS_ASLEEP);
                 assignmentRepository.save(assignmentDB);
                 logoutWithQuitDriver();
                 return;
