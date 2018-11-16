@@ -24,6 +24,7 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
+import tech.mangosoft.autolinkedin.config.GlobalProperties;
 import tech.mangosoft.autolinkedin.db.entity.*;
 import tech.mangosoft.autolinkedin.db.entity.enums.Status;
 import tech.mangosoft.autolinkedin.db.repository.*;
@@ -50,6 +51,9 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     private static Logger log = LogManager.getRootLogger();
     private static java.util.logging.Logger logger = java.util.logging.Logger.getLogger(LinkedInDataProvider.class.getName());
     private static StringWriter stringWriter = new StringWriter();
+
+    @Autowired
+    private GlobalProperties globalProperties;
 
     @Autowired
     private WebDriver driver;
@@ -94,7 +98,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     private ApplicationContext context;
 
-//    final Map config;
 
     private AtomicLong processed;
     private AtomicLong saved;
@@ -199,32 +202,12 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     }
 
     public void loginTo() throws InterruptedException {
-        driver.get("http://www.linkedin.com");
-        Thread.sleep(14000);
-
+        driver.get(globalProperties.getLinkedinLink());
+        utils.randomSleep(5);
 
         if (!checkIfUserIsloggedIn(false)) {
 
             logger.info("Fill Login form: ");
-
-            //<a class="nav-link" href="https://www.linkedin.com/uas/login?session_redirect=&amp;goback=&amp;trk=hb_signin" title="Sign in">Sign in</a>
-/*
-            Thread.sleep(5000);
-            //check if user is logged in
-            List<WebElement> loginButtons = utils.fluentWait(By.partialLinkText("Sign in"));
-
-            if (loginButtons.size()==0){
-                loginButtons = utils.fluentWait(By.partialLinkText("Sign In"));
-            }
-
-            if (loginButtons.size() == 0) {
-                checkIfUserIsloggedIn(true);
-            } else {
-*/
-            //            loginButtons.get(0).click();
-            //          Thread.sleep(5000);
-
-            //if user is not logged in - plz login
             WebElement login = null;
             try {
                 login = utils.fluentWait(By.name("session_key")).get(0);
@@ -257,48 +240,9 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     }
 
-    private void logOutSales() throws InterruptedException {
-        List<WebElement> image = utils.fluentWait(By.xpath("//a[text() = 'Sign out']"));
-        if (image.size() != 0) {
-            String href = image.get(0).getAttribute("href");
-            driver.get(href);
-        }
-    }
-
-//    private void logOut() throws InterruptedException {
-//        clickNavBar();
-//        clickSignOut();
-//    }
-
-    private void clickNavBar() throws InterruptedException {
-        List<WebElement> loginButtons = utils.fluentWait(By.id("nav-settings__dropdown-trigger"));
-        if (loginButtons.size() == 0) {
-            loginButtons = utils.fluentWait(By.partialLinkText("Me"));
-        }
-        if (loginButtons.size() == 0) {
-            checkIfUserIsloggedIn(true);
-        } else {
-            loginButtons.get(0).click();
-            Thread.sleep(5000);
-        }
-    }
-
-    private void clickSignOut() throws InterruptedException {
-        List<WebElement> signOutButtons = utils.fluentWait(By.linkText("Sign out"));
-        if (signOutButtons.size() == 0) {
-            signOutButtons = utils.fluentWait(By.partialLinkText("Sign out"));
-        }
-        if (signOutButtons.size() == 0) {
-            checkIfUserIsloggedIn(true);
-        } else {
-            signOutButtons.get(0).click();
-            Thread.sleep(5000);
-        }
-    }
-
     public boolean checkIfUserIsloggedIn(boolean showErrors) {
-        List<WebElement> users = utils.fluentWait(By.xpath("//*[contains(@class,'profile-member-photo')]"));
-        if (users.size() > 0 /*&& users.get(0).getAttribute("alt").contains(currentAccount.getCaption())*/) {
+        List<WebElement> userProfile = driver.findElements(By.xpath("//*[contains(@id, 'profile-nav-item')]"));
+        if (!userProfile.isEmpty()) {
             logger.info("logged in successfully");
             return true;
         } else {
@@ -749,11 +693,9 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             currentLocation = new Location(assignment.getFullLocationString());
             locationRepository.save(currentLocation);
         }
-        boolean statusError = false;
-        assignment.setPage(0);
         try {
             this.loginTo();
-            driver.get("https://www.linkedin.com/sales/search/people?viewAllFilters=true");
+            driver.get(globalProperties.getLinkedinSalesLink());
             Thread.sleep(8000);
             logger.info("Click SearchForLeads successfully");
 
@@ -761,18 +703,18 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 for (CompanyHeadcount headcount : assignment.getHeadcounts()) {
                     fillSalesSearchForm(assignment, headcount);
                     parsingAndSavingContacts(assignment, account);
-                    driver.get("https://www.linkedin.com/sales/search/people?viewAllFilters=true");
+                    driver.get(globalProperties.getLinkedinSalesLink());
                     Thread.sleep(8000);
                 }
             } else {
                 fillSalesSearchForm(assignment, null);
                 parsingAndSavingContacts(assignment, account);
             }
-//            this.logOutSales();
-            logoutWithQuitDriver();
         } catch (InterruptedException | RuntimeException e) {
             System.out.println("Error:" + e.getMessage());
             e.printStackTrace();
+
+        } finally {
             logoutWithQuitDriver();
         }
     }
