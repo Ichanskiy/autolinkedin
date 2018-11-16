@@ -526,6 +526,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 assignmentDB.setStatus(Status.STATUS_ERROR);
                 assignmentRepository.save(assignmentDB);
                 logoutWithQuitDriver();
+                return;
             }
             errorContactId = contact.getId();
 
