@@ -15,8 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.UriComponentsBuilder;
 
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -49,9 +52,8 @@ public class SeleniumUtils {
         ((JavascriptExecutor) driver).executeScript("window.open()");
         List<String> tabs = new ArrayList<>(driver.getWindowHandles());
         driver.switchTo().window(tabs.get(1));
-        randomSleep(2);
         driver.get(url);
-        randomSleep(4);
+        randomSleep(6);
         return tabs;
     }
 
