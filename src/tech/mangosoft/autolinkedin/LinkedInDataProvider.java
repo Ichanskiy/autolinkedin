@@ -1293,9 +1293,11 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     }
 
     private List<LinkedInContact> extractLinkedInContactsOnPageSales() throws InterruptedException {
-        utils.randomSleep(2);
+        ((JavascriptExecutor) driver)
+                .executeScript("window.scrollTo(0, document.body.scrollHeight)");
+        utils.randomSleep(4);
         List<WebElement> searchResults = driver.findElements(
-                By.xpath("//ol[contains(@class,'search-results__result-list')]/li[contains(@class, 'search-results__result-item')]"));
+                By.xpath("//ol[contains(@class,'search-results__result-list')]//li[contains(@class, 'search-results__result-item')]"));
         if (searchResults.isEmpty()) {
             log.error("No results found");
             return null;
