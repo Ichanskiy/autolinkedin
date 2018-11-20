@@ -710,6 +710,8 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 fillSalesSearchForm(assignment, null);
                 parsingAndSavingContacts(assignment, account);
             }
+            Assignment assignmentDB = assignmentRepository.getById(assignmentId);
+            assignmentRepository.save(assignmentDB.setStatus(Status.STATUS_FINISHED));
         } catch (InterruptedException | RuntimeException e) {
             System.out.println("Error:" + e.getMessage());
             e.printStackTrace();

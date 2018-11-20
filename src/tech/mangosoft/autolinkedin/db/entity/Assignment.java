@@ -26,7 +26,7 @@ public class Assignment {
     @GeneratedValue(strategy = IDENTITY)
     private Long id;
 
-    @Column
+    @Column(columnDefinition = "int default 0")
     private Integer page;
 
     @Column
