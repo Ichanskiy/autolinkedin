@@ -523,9 +523,10 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             if (contact == null) {
                 logger.info("CONTACT IS NULL");
                 Assignment assignmentDB = assignmentRepository.getById(assignment.getId());
-                assignmentDB.setStatus(Status.STATUS_ERROR);
+                assignmentDB.setStatus(Status.STATUS_ASLEEP);
                 assignmentRepository.save(assignmentDB);
                 logoutWithQuitDriver();
+                return;
             }
             errorContactId = contact.getId();
 
@@ -549,10 +550,10 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 boolean salesMessage;
                 salesMessage = this.searchGoogle(contact.getFirstName() + " " + contact.getLastName() + " " + contact.getCompanyName(), contact.getLinkedin());
                 if (salesMessage) {
-                    sendingResult = this.connectAndSendMessagesToSales(assignment.getMessage().replace("%%", contactNameParsedFromSite.equals("") ? contact.getFirstName() : contactNameParsedFromSite));
+                    sendingResult = this.connectAndSendMessagesToSales(assignment.getMessage().replace("%%", contact.getFirstName() != null ? contact.getFirstName() : ""));
                 } else {
                     sendingResult = this.connectTo()
-                            && this.sendMessage(assignment.getMessage().replace("%%", contactNameParsedFromSite.equals("") ? contact.getFirstName() : contactNameParsedFromSite));
+                            && this.sendMessage(assignment.getMessage().replace("%%", contact.getFirstName() != null ? contact.getFirstName() : ""));
                 }
 
                 contactRepositoryCustom.updateContactStatus(assignment, contact, currentAccount, sendingResult ? LinkedInContact.STATUS_PROCESSED : LinkedInContact.STATUS_ERROR,

@@ -43,7 +43,7 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
 //        Page<LinkedInContact> linkedInContacts = contactRepository.findAllByStatus(LinkedInContact.STATUS_NEW, PageRequest.of(page, 1));
         LinkedInContact contact = null;
         if (assignment.getPosition() != null && assignment.getIndustries() != null && assignment.getFullLocationString() != null) {
-            Location location = locationRepository.getLocationByLocationLike(assignment.getFullLocationString());
+            Location location = locationRepository.getLocationByLocation(assignment.getFullLocationString());
             if (location != null) {
                 contact = contactRepository.findFirstByStatusAndLocationAndRoleContainsAndIndustriesContainsAndContactProcessingsIsNull(LinkedInContact.STATUS_NEW, location, assignment.getPosition(), assignment.getIndustries());
                 if (contact == null) {
