@@ -221,6 +221,7 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
                 .setIndustries(newContact.getIndustries())
                 .setCompanyName(newContact.getCompanyName())
                 .setRole(newContact.getRole())
+                .setHeadcount(newContact.getHeadcount())
                 .setCompanyLinkedin(contactDb.getCompanyLinkedin())
                 .setCompanyWebsite(newContact.getCompanyWebsite());
     }

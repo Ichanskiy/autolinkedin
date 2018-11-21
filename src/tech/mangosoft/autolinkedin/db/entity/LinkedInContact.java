@@ -170,6 +170,15 @@ public class LinkedInContact {
         return this;
     }
 
+    public CompanyHeadcount getHeadcount() {
+        return headcount;
+    }
+
+    public LinkedInContact setHeadcount(CompanyHeadcount headcount) {
+        this.headcount = headcount;
+        return this;
+    }
+
     public String getRole() {
         return role;
     }

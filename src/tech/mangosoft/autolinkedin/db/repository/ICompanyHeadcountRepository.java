@@ -9,5 +9,6 @@ public interface ICompanyHeadcountRepository extends CrudRepository<CompanyHeadc
 
     List<CompanyHeadcount> findAll();
     CompanyHeadcount getById(Long id);
+    CompanyHeadcount getByHeadcount(String headcount);
 
 }
