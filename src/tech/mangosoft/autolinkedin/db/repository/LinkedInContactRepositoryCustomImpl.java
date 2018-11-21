@@ -58,12 +58,12 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
                 if (contact == null) {
                     contact = contactRepository.findFirstByStatusAndLocationAndIndustriesContains(LinkedInContact.STATUS_NEW, location, assignment.getIndustries());
                 }
-                if (contact == null) {
-                    contact = contactRepository.findFirstByStatusAndLocationAndContactProcessingsIsNull(LinkedInContact.STATUS_NEW, location);
-                }
-                if (contact == null) {
-                    contact = contactRepository.findFirstByStatusAndLocation(LinkedInContact.STATUS_NEW, location);
-                }
+//                if (contact == null) {
+//                    contact = contactRepository.findFirstByStatusAndLocationAndContactProcessingsIsNull(LinkedInContact.STATUS_NEW, location);
+//                }
+//                if (contact == null) {
+//                    contact = contactRepository.findFirstByStatusAndLocation(LinkedInContact.STATUS_NEW, location);
+//                }
                 //todo fix
 //                if (contact == null) {
 //                    contact = contactRepository.findFirstByLocation(location);
@@ -221,6 +221,7 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
                 .setIndustries(newContact.getIndustries())
                 .setCompanyName(newContact.getCompanyName())
                 .setRole(newContact.getRole())
+                .setCompanyLinkedin(contactDb.getCompanyLinkedin())
                 .setCompanyWebsite(newContact.getCompanyWebsite());
     }
 }

@@ -147,8 +147,9 @@ public class LinkedInContact {
         return companyLinkedin;
     }
 
-    public void setCompanyLinkedin(String companyLinkedin) {
+    public LinkedInContact setCompanyLinkedin(String companyLinkedin) {
         this.companyLinkedin = companyLinkedin;
+        return this;
     }
 
     public String getFirstName() {
