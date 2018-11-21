@@ -38,11 +38,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-
-//CREATE TRIGGER creation_time_calc BEFORE INSERT ON linkedin_contacts
-// FOR EACH ROW	SET NEW.creation_time = CURRENT_TIMESTAMP;
-
-
 @Component("linkedInDataProvider")
 @Scope("prototype")
 @Lazy(value = true)
@@ -71,9 +66,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     private ILinkedInContactRepository contactRepository;
 
     @Autowired
-    private ILinkedInContactRepository iLinkedInContactRepository;
-
-    @Autowired
     private ILocationRepository locationRepository;
 
     @Autowired
@@ -81,9 +73,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     @Autowired
     private IAssignmentRepository assignmentRepository;
-
-    @Autowired
-    private IProcessingReportRepository processingReportRepository;
 
     @Autowired
     private IContactProcessingRepository contactProcessingRepository;
@@ -201,41 +190,30 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         }
     }
 
-    public void loginTo() throws InterruptedException {
+    public void loginToAccount() throws InterruptedException {
         driver.get(globalProperties.getLinkedinLink());
-        utils.randomSleep(5);
+        Thread.sleep(8000);
 
         if (!checkIfUserIsloggedIn(false)) {
-
             logger.info("Fill Login form: ");
-            WebElement login = null;
-            try {
-                login = utils.fluentWait(By.name("session_key")).get(0);
-            } catch (Exception e) {
-                Thread.sleep(3000);
-                driver.get("http://www.linkedin.com");
-                Thread.sleep(14000);
-                login = utils.fluentWait(By.name("session_key")).get(0);
+
+            WebElement login = utils.findElementsAndGetFirst(By.name("session_key"), null);
+            if(login != null){
+                login.sendKeys(currentAccount.getUsername());
+                utils.randomSleep(3);
+
+                WebElement pwd = utils.findElementsAndGetFirst(By.name("session_password"), null);
+                if(pwd != null){
+                    pwd.sendKeys(currentAccount.getPassword());
+                    utils.randomSleep(3);
+
+                    WebElement in = utils.findElementsAndGetFirst(By.id("login-submit"), null);
+                    if(in != null){
+                        in.click();
+                        Thread.sleep(8000);
+                    }
+                }
             }
-
-            login.sendKeys(currentAccount.getUsername());
-
-            Thread.sleep(3000);
-
-            WebElement pwd = utils.fluentWait(By.name("session_password")).get(0);
-
-            pwd.sendKeys(currentAccount.getPassword());
-            Thread.sleep(3000);
-
-
-            WebElement in = driver.findElement(By.id("login-submit"));
-            in.click();
-
-            Thread.sleep(10000);
-
-            //check if user logged in successfully
-//            checkIfUserIsloggedIn(true);
-            //          }
         }
 
     }
@@ -460,7 +438,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 //
 ////                String template = this.getMessage("first_follow_up", contextMap);
 //
-//                this.loginTo();
+//                loginToAccount();
 //                this.searchGoogle(contact.getFirstName() + " " + contact.getLastName() + " " + contact.getCompanyName(), contact.getLinkedin());
 //
 //                sendingResult = this.connectTo()
@@ -545,7 +523,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
 
-                this.loginTo();
+                loginToAccount();
 
                 boolean salesMessage;
                 salesMessage = this.searchGoogle(contact.getFirstName() + " " + contact.getLastName() + " " + contact.getCompanyName(), contact.getLinkedin());
@@ -618,7 +596,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
 
         try {
-            this.loginTo();
+            loginToAccount();
             fillSearchForm(location, position, new ArrayList<>(Collections.singletonList(inductries)));
             utils.randomSleep(15);
             String result = "";
@@ -650,8 +628,8 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
             while (pagesAvailable && canExecute) {
                 buf.setLength(0);
-                canExecute = checkGrabbingLimit(currentAccount, assignmentId);
-                pagesAvailable = getPageAvilable();
+                canExecute = checkGrabbingLimit(currentAccount);
+                pagesAvailable = getPageAvailable();
 
                 List<LinkedInContact> contacts = extractLinkedInContactsOnPage();
                 if (contacts != null) {
@@ -695,7 +673,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             locationRepository.save(currentLocation);
         }
         try {
-            this.loginTo();
+            loginToAccount();
             driver.get(globalProperties.getLinkedinSalesLink());
             Thread.sleep(8000);
             logger.info("Click SearchForLeads successfully");
@@ -728,21 +706,16 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     }
 
     private void parsingAndSavingContacts(Assignment assignment, Account account) throws InterruptedException {
+
         boolean pagesAvailable = true;
         boolean canExecute = true;
-        if (assignment.getPage() == null) {
-            assignment.setPage(0);
-        }
-        if (assignment.getPage().intValue() != 0) {
-            goToTheNextPageSales(assignment.getPage(), assignment.getId());
-        }
+
         while (pagesAvailable && canExecute) {
             StringBuffer buf = stringWriter.getBuffer();
-            buf .setLength(0);
-            canExecute = checkGrabbingLimit(currentAccount, assignment.getId());
+            buf.setLength(0);
+            canExecute = checkGrabbingLimit(currentAccount);
             List<LinkedInContact> contacts = extractLinkedInContactsOnPageSales();
             if (contacts != null) {
-                contacts.removeAll(Collections.singleton(null));
                 contacts.stream().map(linkedInContact -> {
                     linkedInContact.setIndustries(assignment.getIndustries());
                     linkedInContact.setRole(assignment.getPosition());
@@ -754,7 +727,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             contactRepositoryCustom.saveNewContactsBatch(account, assignment.getId(),
                     contacts, reports.get(reports.size() - 1).getId(), buf.toString());
 
-            pagesAvailable = goToTheNextPageSales(0, assignment.getId());
+            pagesAvailable = goToTheNextPageSales();
             if (pagesAvailable) {
                 Assignment byId = assignmentRepository.getById(assignment.getId());
                 assignmentRepository.save(byId.incrementPage());
@@ -795,7 +768,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             }
 
             setCountFoundContactsToAssignment(assignment);
-            clickSearchContactsButton();
         }
     }
 
@@ -938,19 +910,23 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         }
     }
 
-    private void setCountFoundContactsToAssignment(Assignment assignment) {
+    private void setCountFoundContactsToAssignment(Assignment assignment) throws InterruptedException {
         String count = utils.findTextOrExtractValue(
                 By.xpath("//span[contains(@class, 'ph2')]//b"), null, null).orElse(null);
-        if (count != null) {
+        Assignment assignmentDb = assignmentRepository.getById(assignment.getId());
+        if (count != null && !count.equals("0")) {
             count = count.replaceAll("[^0-9]+", "");
-            Assignment assignmentDb = assignmentRepository.getById(assignment.getId());
             if (assignmentDb.getCountsFound() != null) {
                 assignmentDb.setCountsFound(assignmentDb.getCountsFound() + Integer.valueOf(count));
             } else {
                 assignmentDb.setCountsFound(Integer.valueOf(count));
             }
             assignmentRepository.save(assignmentDb);
-
+            clickSearchContactsButton();
+        }else{
+            assignmentDb.setStatus(Status.STATUS_ERROR);
+            assignmentRepository.save(assignmentDb);
+            throw new InterruptedException("Result is empty");
         }
     }
 
@@ -978,11 +954,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         return count;
     }
 
-    private boolean getPageAvilable() throws InterruptedException {
-        utils.randomSleep(2);
-        ((JavascriptExecutor) driver)
-                .executeScript("window.scrollTo(0, document.body.scrollHeight)");
-        utils.randomSleep(1);
+    private boolean getPageAvailable() {
         List<WebElement> resultsPages = utils.fluentWait(By.xpath("//ol[contains(@class,'results-paginator')]/li/ol/li[contains(@class,'active')]"));
 //        todo fix it
         if (resultsPages.isEmpty()) {
@@ -992,37 +964,17 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             log.error("No pages found");
             return false;
         }
-//        if (checkIfPageLinkDisplayed(Integer.parseInt(resultsPages.get(0).getText())) == null) {
-//            return false;
-//        }
+
         return true;
     }
 
-    private boolean getPageAvilableSales() throws InterruptedException {
-        utils.randomSleep(2);
-        ((JavascriptExecutor) driver)
-                .executeScript("window.scrollTo(0, document.body.scrollHeight)");
-        utils.randomSleep(1);
-        List<WebElement> resultsPages = utils.fluentWait(By.xpath("//nav[contains(@role, 'nav')]/ol"));
-        if (resultsPages.isEmpty()) {
-            log.error("No pages found");
-            return false;
-        }
-        return true;
-    }
-
-    private boolean checkGrabbingLimit(Account account, Long assignmentId) {
-        //lets limit exicution time
-        Assignment assignment = assignmentRepository.getById(assignmentId);
+    private boolean checkGrabbingLimit(Account account) {
         if (grabbed.get() >= account.getGrabbingLimit()) {
             log.info("Applivation processed " + grabbed.get() + " pages. No more pages allowed today.");
             System.out.println("Applivation processed " + grabbed.get() + " pages. No more pages allowed today.");
 
-            //exiting from spring app
-            //SpringApplication.exit(context, () -> 0);
             return false;
         }
-
 
         return true;
     }
@@ -1271,33 +1223,30 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     private LinkedInContact extractLinkedInContactSales(WebElement result) throws InterruptedException {
 
-        String name = utils.findTextAndExtractValue(By.xpath(".//dt[contains(@class,'name')]"), result).orElse(null);
-        String company = utils.findTextAndExtractValue(By
-                .xpath(".//span[contains(@class,'company')]"), result)
+        String name = utils.findTextOrExtractValue(By.xpath(".//dt[contains(@class,'result-lockup__name')]"), result, null)
                 .orElse(null);
-        String companyLink = utils.findTextAndExtractValue(By.xpath(".//span[contains(@class,'company')]/a"), result, "href").orElse(null);
-        String userLink = utils.findTextAndExtractValue(By.xpath(".//dt[contains(@class,'name')]/a"), result, "href").orElse(null);
+
+        if(name.equalsIgnoreCase("LinkedIn Member")){
+            return null;
+        }
+
+        String company = utils.findTextOrExtractValue(By.xpath(".//span[contains(@class,'result-lockup__position-company')]"), result, null)
+                .orElse(null);
+        String companyLink = utils.findTextOrExtractValue(By.xpath(".//span[contains(@class,'result-lockup__position-company')]/a"), result, "href").orElse(null);
+        String userLink = utils.findTextOrExtractValue(By.xpath(".//dt[contains(@class,'result-lockup__name')]/a"), result, "href").orElse(null);
 
         int status = ContactProcessing.STATUS_GRABBED;
 
         String firstName = null;
         String lastName = null;
+
         if (name != null) {
             String nameParts[] = name.split(" ");
 
             firstName = nameParts[0];
             lastName = nameParts[nameParts.length - 1];
-            if (firstName.equalsIgnoreCase("LinkedIn")) {
-                firstName = null;
-                status = LinkedInContact.STATUS_REQUIRE_LOAD_FROM_OTHER_ACCOUNT;
-            }
-
-            if (lastName.equalsIgnoreCase("Member")) {
-                lastName = null;
-                status = LinkedInContact.STATUS_REQUIRE_LOAD_FROM_OTHER_ACCOUNT;
-            }
         } else {
-            System.out.println("ERROR");
+            log.error("ERROR CONTACT");
             return null;
         }
 
@@ -1308,9 +1257,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         contact.setLinkedin(userLink);
         contact.setCompanyLinkedin(companyLink);
         contact.setStatus(status);
-//        contact.setCreateTime(new Date());
         contact.setLocation(currentLocation);
-
         getCompanySiteByLinkedInContact(contact);
 
         return contact;
@@ -1349,12 +1296,11 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     }
 
     private List<LinkedInContact> extractLinkedInContactsOnPageSales() throws InterruptedException {
-
         ((JavascriptExecutor) driver)
                 .executeScript("window.scrollTo(0, document.body.scrollHeight)");
         utils.randomSleep(4);
-        List<WebElement> searchResults = utils.fluentWait(By.xpath("//ol[contains(@class,'search-results__result-list')]/li"));
-        searchResults.addAll(utils.fluentWait(By.xpath("//ol[contains(@class,'search-results__result-list')]/div/li")));
+        List<WebElement> searchResults = driver.findElements(
+                By.xpath("//ol[contains(@class,'search-results__result-list')]//li[contains(@class, 'search-results__result-item')]"));
         if (searchResults.isEmpty()) {
             log.error("No results found");
             return null;
@@ -1363,9 +1309,11 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         List<LinkedInContact> contacts = new LinkedList<>();
 
         for (WebElement result : searchResults) {
-            utils.mouseMoveToElement(result);
-            utils.randomSleep(1);
-            contacts.add(extractLinkedInContactSales(result));
+            LinkedInContact contact = extractLinkedInContactSales(result);
+            if(contact != null){
+                contacts.add(contact);
+            }
+
         }
 
         return contacts;
@@ -1388,7 +1336,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                     if (linkOnCompany != null) {
                         linkedInContact.setCompanyLinkedin(linkOnCompany);
                         driver.get(linkedInContact.getCompanyLinkedin());
-                        utils.randomSleep(4);
+                        utils.randomSleep(6);
 
                         companySite = utils.findTextOrExtractValue(By.xpath("//a[@data-control-name='topcard_website']"),
                                 null, "href").orElse(null);
@@ -1407,59 +1355,14 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         }
     }
 
-    private boolean goToTheNextPageSales(int page, Long assignmentId) throws InterruptedException {
-        utils.randomSleep(2);
-        ((JavascriptExecutor) driver)
-                .executeScript("window.scrollTo(0, document.body.scrollHeight)");
-        utils.randomSleep(5);
-        List<WebElement> resultsPages = utils.fluentWait(By.xpath("//nav[contains(@role, 'nav')]/ol"));
-        if (resultsPages.isEmpty()) {
-            log.error("No pages found");
-            return false;
-        }
-        log.info("Pages found");
-        if (page == 0) {
-            //TODO: Need fix click if small window ( fail click on block HELP? )
-            List<WebElement> nextPage = utils.fluentWait(By.xpath("//button[contains(@class, 'next')]"));
-            if (!nextPage.isEmpty()) {
-                if (nextPage.get(0).isEnabled()) {
-                    nextPage.get(0).click();
-                    utils.randomSleep(8);
-                    return true;
-                } else {
-                    utils.randomSleep(8);
-                    return false;
-                }
-            }
-            utils.randomSleep(5);
-            return false;
-        }
-        if (page != 0) {
-            if (paggingCounter.get() > 1000) {
-                log.error("Too deep paging paggingCounter = " + paggingCounter.get() + ", but we searching for page #" + page);
-                return false;
-            }
-            WebElement foundPage = checkIfPageLinkDisplayed(page);
-            if (foundPage != null) {
-                foundPage.click();
-                utils.randomSleep(5);
+    private boolean goToTheNextPageSales() throws InterruptedException {
+        WebElement nextPage = utils.findElementsAndGetFirst(By.xpath("//nav[contains(@class, 'search-results__pagination')]//button[contains(@class, 'search-results__pagination-next-button')]"), null);
+        if (nextPage != null) {
+            if (nextPage.isEnabled()) {
+                nextPage.click();
+                utils.randomSleep(6);
                 return true;
-            }
-            WebElement currentLastPage = getLastPageDisplayed();
-            if (currentLastPage == null) {
-                log.error("No last page found on current page.");
-                return false;
-            }
-            int lastPageIndex = Integer.parseInt(currentLastPage.getText());
-            if (lastPageIndex < page) {
-                currentLastPage.click();
-                utils.randomSleep(5);
-                paggingCounter.incrementAndGet();
-                return goToTheNextPage(page, assignmentId);
-                //paggingCounter.decrementAndGet();
-
             } else {
-                log.error("Something going wrong lastPageIndex = " + lastPageIndex + ", but we searching for page #" + page);
                 return false;
             }
         }
@@ -1538,7 +1441,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     }
 
 
-    private WebElement checkIfPageLinkDisplayed(int page) throws InterruptedException {
+    private WebElement checkIfPageLinkDisplayed(int page) {
 
         String pageXpath = "//ol[contains(@class,'results-paginator')]/li/ol/li/button[contains(text(),'" + page + "')]";
         List<WebElement> nextPage = utils.fluentWait(By.xpath(pageXpath));
@@ -1551,7 +1454,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     }
 
-    private WebElement getLastPageDisplayed() throws InterruptedException {
+    private WebElement getLastPageDisplayed() {
 
         String pageXpath = "//ol[contains(@class,'results-paginator')]/li/ol/li[contains(@class,'active')]/following-sibling::li/button";
         List<WebElement> nextPage = utils.fluentWait(By.xpath(pageXpath));
