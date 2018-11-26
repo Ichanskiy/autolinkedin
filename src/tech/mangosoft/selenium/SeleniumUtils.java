@@ -44,16 +44,12 @@ public class SeleniumUtils {
         this.driver = driver;
     }
 
-    public void randomSleep(int sleep) throws InterruptedException {
-        Thread.sleep(ThreadLocalRandom.current().nextLong(500L * sleep, 1000L * sleep));
-    }
-
     public List<String> openTabAndDoRedirect(final String url) throws InterruptedException{
         ((JavascriptExecutor) driver).executeScript("window.open()");
         List<String> tabs = new ArrayList<>(driver.getWindowHandles());
         driver.switchTo().window(tabs.get(1));
         driver.get(url);
-        randomSleep(6);
+        Thread.sleep(6000);
         return tabs;
     }
 
@@ -192,7 +188,7 @@ public class SeleniumUtils {
             while (!element.getAttribute("value").equals(sb.toString())) {
                 element.clear();
                 element.sendKeys(sb.toString());
-                randomSleep(1);
+                Thread.sleep(1000);
             }
         }
         return element;
@@ -206,7 +202,7 @@ public class SeleniumUtils {
         element.sendKeys(searchString + "\n"); // send also a "\n"
         //element.submit();
 
-        randomSleep(3);
+        Thread.sleep(3000);
 
         // wait until the google page shows the result
 
@@ -234,7 +230,7 @@ public class SeleniumUtils {
                 //click
                 log.info("Found corect link at google: " + href + ". Clicking...");
                 webElement.click();
-                randomSleep(1);
+                Thread.sleep(1000);
                 return webElement;
             }
         }

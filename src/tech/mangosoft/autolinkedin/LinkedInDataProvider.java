@@ -175,12 +175,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     }
 
 
-    public boolean searchGoogle(String name, String contactURL) throws InterruptedException {
-        //going google
-//        logger.info("Looking at google for link to linked in: " + name);
-//        WebElement element = utils.searchGoogle(name + " site:linkedin.com", "linkedin.com/in", false);
-//
-        //if no element was found - just
+    public boolean isContainsSales(String contactURL) {
         if (contactURL.contains("/sales")) {
             driver.get(contactURL);
             return true;
@@ -200,12 +195,12 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             WebElement login = utils.findElementsAndGetFirst(By.name("session_key"), null);
             if(login != null){
                 login.sendKeys(currentAccount.getUsername());
-                utils.randomSleep(3);
+                Thread.sleep(3000);
 
                 WebElement pwd = utils.findElementsAndGetFirst(By.name("session_password"), null);
                 if(pwd != null){
                     pwd.sendKeys(currentAccount.getPassword());
-                    utils.randomSleep(3);
+                    Thread.sleep(3000);
 
                     WebElement in = utils.findElementsAndGetFirst(By.id("login-submit"), null);
                     if(in != null){
@@ -234,27 +229,27 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     private boolean connectAndSendMessagesToSales(String message) throws InterruptedException {
         logger.info("Openning popup to connect to current user");
-        utils.randomSleep(4);
+        Thread.sleep(4000);
         List<WebElement> webElements = utils.fluentWait(By.xpath("//div[contains(@class,'profile-top')]/button"));
         if (!webElements.isEmpty()) {
-            utils.randomSleep(4);
+            Thread.sleep(4000);
             webElements.get(0).click();
-            utils.randomSleep(4);
+            Thread.sleep(4000);
             List<WebElement> connectButton = utils.fluentWait(By.xpath("//a[text() = 'Connect']"));
             if (!connectButton.isEmpty()) {
-                utils.randomSleep(2);
+                Thread.sleep(2000);
                 connectButton.get(0).click();
-                utils.randomSleep(4);
+                Thread.sleep(4000);
                 List<WebElement> customMessageTextAreas = utils.fluentWait(By.xpath("//textarea[contains(@placeholder,'custom message')]"));
                 if (!customMessageTextAreas.isEmpty()) {
                     WebElement customMessageTextArea = customMessageTextAreas.get(0);
-                    utils.randomSleep(4);
+                    Thread.sleep(4000);
                     customMessageTextArea.sendKeys(message);
-                    utils.randomSleep(6);
+                    Thread.sleep(6000);
                     List<WebElement> sendButton = utils.fluentWait(By.xpath("//button[contains(@class,'connect')]"));
                     if (!sendButton.isEmpty()) {
                         sendButton.get(1).click();
-                        utils.randomSleep(2);
+                        Thread.sleep(2000);
                         return true;
                     }
                 }
@@ -399,11 +394,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         executed = new AtomicInteger(0);
         //lets limit exicution time
         while (executed.get() <= assignment.getCountMessages()) {
-
-            if (assignment.getPage() == null) {
-                assignment.setPage(0);
-            }
-
             LinkedInContact contact = contactRepositoryCustom.getNextAvailableContact(assignment.getPage(), assignment);
             if (contact == null) {
                 logger.info("CONTACT IS NULL");
@@ -433,7 +423,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 loginToAccount();
 
                 boolean salesMessage;
-                salesMessage = this.searchGoogle(contact.getFirstName() + " " + contact.getLastName() + " " + contact.getCompanyName(), contact.getLinkedin());
+                salesMessage = this.isContainsSales(contact.getLinkedin());
                 if (salesMessage) {
                     sendingResult = this.connectAndSendMessagesToSales(assignment.getMessage().replace("%%", contact.getFirstName() != null ? contact.getFirstName() : ""));
                 } else {
@@ -460,7 +450,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 logoutWithQuitDriver();
             }
             try {
-                utils.randomSleep(10);
+                Thread.sleep(10000);
             } catch (InterruptedException e) {
                 System.out.println("Error:" + error);
                 e.printStackTrace();
@@ -476,9 +466,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         assignmentDB.setStatus(Status.STATUS_FINISHED);
         assignmentRepository.save(assignmentDB);
         logoutWithQuitDriver();
-
-//        SpringApplication.exit(context, () -> 0);
-//        return;
     }
 
     //    executeSearchContacts
@@ -505,21 +492,21 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         try {
             loginToAccount();
             fillSearchForm(location, position, new ArrayList<>(Collections.singletonList(inductries)));
-            utils.randomSleep(15);
+            Thread.sleep(15000);
             String result = "";
             try {
                 result = utils.fluentWait(By.xpath("//h3[contains(@class, 'search-results__total')]")).get(0).getText();
                 if (result != null) {
                     while (getCountSymbolFromString(result, ',') >= 2) {
                         fillSearchForm(location, position, new ArrayList<>(Collections.singletonList(inductries)));
-                        utils.randomSleep(15);
+                        Thread.sleep(15000);
                         result = utils.fluentWait(By.xpath("//h3[contains(@class, 'search-results__total')]")).get(0).getText();
                     }
                 }
             } catch (Exception e) {
                 logger.info("Result is empty");
             }
-            utils.randomSleep(20);
+            Thread.sleep(20000);
 
             boolean pagesAvailable = true;
             boolean canExecute = true;
@@ -646,7 +633,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     private void fillSalesSearchForm(Assignment assignment, CompanyHeadcount headcount) throws InterruptedException {
         log.info("Start fillSalesSearchForm");
-        utils.randomSleep(5);
+        Thread.sleep(5000);
         List<WebElement> search = driver.findElements(By.xpath("//div[contains(@class, 'flex pt4 ph4 pb3 flex-wrap')]"));
         if(!search.isEmpty()){
             selectRelationShip(search.get(2));
@@ -683,7 +670,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         WebElement searchButton = utils.findElementsAndGetFirst(By.xpath("//button[contains(@data-control-name,'advanced_search_profile')]"), null);
         if (searchButton != null) {
             searchButton.click();
-            utils.randomSleep(5);
+            Thread.sleep(5000);
         }else{
             log.error("Can't find Search Contacts Button");
             return;
@@ -692,13 +679,13 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     private void writeCompanyHeadcount(WebElement headcountElement, Assignment assignment, CompanyHeadcount headcount) throws InterruptedException {
         headcountElement.click();
-        utils.randomSleep(3);
+        Thread.sleep(3000);
         List<WebElement> elements = headcountElement.findElements(By.xpath("//ol[contains(@class, 'search-filter-typeahead__list')]//a"));
         if(!elements.isEmpty()){
             WebElement element = elements.stream().filter(e -> e.getText().equalsIgnoreCase(headcount.getHeadcount())).findFirst().orElse(null);
             if(element != null){
                 element.click();
-                utils.randomSleep(4);
+                Thread.sleep(4000);
             }
 
             WebElement selectedValue = utils.findElementsAndGetFirst(By.xpath("//ul[contains(@class, 'ph4 pb2 list-style-none flex flex-wrap')]//li"), headcountElement);
@@ -718,11 +705,11 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             for(Group group : assignment.getGroups()) {
                 searchField.click();
                 searchField.sendKeys(group.getName());
-                utils.randomSleep(3);
+                Thread.sleep(3000);
                 WebElement selectedValue = utils.findElementsAndGetFirst(By.xpath("//ol[contains(@class, 'search-filter-typeahead__list')]//a"), groupElement);
                 if(selectedValue != null){
                     selectedValue.click();
-                    utils.randomSleep(3);
+                    Thread.sleep(3000);
                 }else{
                     assignment.setStatus(Status.STATUS_ERROR);
                     assignmentRepository.save(assignment);
@@ -734,43 +721,43 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     private void selectRelationShip(WebElement relationShipElement) throws InterruptedException {
         relationShipElement.click();
-        utils.randomSleep(2);
+        Thread.sleep(2000);
         WebElement element = utils.findElementsAndGetFirst(
                 By.xpath("//ol[contains(@class, 'search-filter-typeahead__list')]//a"), relationShipElement);
         if(element != null) {
             element.click();
-            utils.randomSleep(3);
+            Thread.sleep(3000);
         }
         element = utils.findElementsAndGetFirst(
                 By.xpath("//ol[contains(@class, 'search-filter-typeahead__list')]//a"), relationShipElement);
 
         if(element != null){
             element.click();
-            utils.randomSleep(3);
+            Thread.sleep(3000);
         }
         element = utils.findElementsAndGetByIndex(
                 By.xpath("//ol[contains(@class, 'search-filter-typeahead__list')]//a"), relationShipElement, 1);
 
         if(element != null){
             element.click();
-            utils.randomSleep(3);
+            Thread.sleep(3000);
         }
     }
 
 
     private void writeLocation(WebElement locationElement, Assignment assignment) throws InterruptedException {
         locationElement.click();
-        utils.randomSleep(3);
+        Thread.sleep(3000);
         WebElement searchField = utils.findElementsAndGetFirst(By.xpath("//input[contains(@placeholder, 'Add locations')]"), locationElement);
         if (searchField != null) {
             searchField.click();
             searchField.sendKeys(assignment.getFullLocationString());
-            utils.randomSleep(3);
+            Thread.sleep(3000);
 
             WebElement selectedValue = utils.findElementsAndGetFirst(By.xpath("//ol[contains(@class, 'search-filter-typeahead__list')]//a"), locationElement);
             if(selectedValue != null){
                 selectedValue.click();
-                utils.randomSleep(3);
+                Thread.sleep(3000);
             }else{
                 assignment.setStatus(Status.STATUS_ERROR);
                 assignmentRepository.save(assignment);
@@ -781,17 +768,17 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
     private void writeIndustries(WebElement industryElement, Assignment assignment) throws InterruptedException {
         industryElement.click();
-        utils.randomSleep(3);
+        Thread.sleep(3000);
         WebElement searchField = utils.findElementsAndGetFirst(By.xpath("//input[contains(@placeholder, 'Add industries')]"), industryElement);
         if (searchField != null) {
             searchField.click();
             searchField.sendKeys(assignment.getIndustries());
-            utils.randomSleep(3);
+            Thread.sleep(3000);
 
             WebElement selectedValue = utils.findElementsAndGetFirst(By.xpath("//ol[contains(@class, 'search-filter-typeahead__list')]//a"), industryElement);
             if(selectedValue != null){
                 selectedValue.click();
-                utils.randomSleep(3);
+                Thread.sleep(3000);
             }else{
                 assignment.setStatus(Status.STATUS_ERROR);
                 assignmentRepository.save(assignment);
@@ -807,7 +794,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             searchField.click();
             searchField.sendKeys(assignment.getPosition());
             searchField.sendKeys(Keys.ENTER);
-            utils.randomSleep(3);
+            Thread.sleep(3000);
 
             WebElement selectedValue = utils.findElementsAndGetFirst(By.xpath("//ul[contains(@class, 'ph4 pb2 list-style-none flex flex-wrap')]//li"), positionElement);
             if(selectedValue == null){
@@ -898,12 +885,12 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         }
 
         utils.mouseMoveToElement(searchTypeahead.get(0));
-        utils.randomSleep(1);
+        Thread.sleep(1000);
         searchTypeahead.get(0).click();
 
         ((JavascriptExecutor) driver).executeScript("window.location='/search/results/people/v2/?origin=DISCOVER_FROM_SEARCH_HOME'");
         log.info("Redirecting to Search Form'");
-        utils.randomSleep(7);
+        Thread.sleep(7000);
 
         List<WebElement> allFiltersButtons = utils.fluentWait(By.xpath("//button[contains(@class,'search-filters-bar') and contains(@class,'all-filters')]"));
         if (allFiltersButtons.isEmpty()) {
@@ -912,7 +899,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         }
 
         allFiltersButtons.get(0).click();
-        utils.randomSleep(7);
+        Thread.sleep(7000);
 
 
         //fill position
@@ -924,11 +911,11 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
         WebElement titleField = titleFields.get(0);
         utils.mouseMoveToElement(titleField);
-        utils.randomSleep(3);
+        Thread.sleep(3000);
         titleField.click();
-        utils.randomSleep(3);
+        Thread.sleep(3000);
         titleField.sendKeys(position);
-        utils.randomSleep(1);
+        Thread.sleep(1000);
 
         //fill network fields
         List<WebElement> searchNetworkFields = utils.fluentWait(By.xpath("//li[contains(@class,'search-facet__value')]"));
@@ -939,15 +926,15 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         for (int i = 0; i < 3; i++) {
             WebElement network = searchNetworkFields.get(i);
             utils.mouseMoveToElement(network);
-            utils.randomSleep(3);
+            Thread.sleep(3000);
             network.click();
-            utils.randomSleep(1);
+            Thread.sleep(1000);
         }
 //        for (WebElement network : searchNetworkFields) {
 //            utils.mouseMoveToElement(network);
-//            utils.randomSleep(1);
+//            Thread.sleep(1000);
 //            network.click();
-//            utils.randomSleep(1);
+//            Thread.sleep(1000);
 //        }
 
         //search-filters-bar__all-filters button-tertiary-medium-muted mr3
@@ -960,9 +947,9 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
         WebElement locationButton = locationButtons.get(0);
         utils.mouseMoveToElement(locationButton);
-        utils.randomSleep(1);
+        Thread.sleep(1000);
         locationButton.click();
-        utils.randomSleep(2);
+        Thread.sleep(2000);
 */
         List<WebElement> searchLocationFields = utils.fluentWait(By.xpath("//input[contains(@placeholder,'Add a location')]"));
         if (searchLocationFields.isEmpty()) {
@@ -972,16 +959,16 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
         WebElement searchLocationFilter = searchLocationFields.get(0);
         utils.mouseMoveToElement(searchLocationFilter);
-        utils.randomSleep(1);
+        Thread.sleep(1000);
         searchLocationFilter.click();
-        utils.randomSleep(4);
+        Thread.sleep(4000);
         searchLocationFilter.sendKeys(location);
-        utils.randomSleep(4);
+        Thread.sleep(4000);
         Actions builder = new Actions(driver);
         builder.moveToElement(searchLocationFilter).moveByOffset(0, 20).click().build().perform();
 
 
-        utils.randomSleep(4);
+        Thread.sleep(4000);
         //lets check if location is added
         List<WebElement> searchLocationResults = utils.fluentWait(By.xpath("//label[contains(@for,'GeoRegion')]"));
         ///text()[contains(.,'" + location + "')]
@@ -1005,21 +992,21 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
             WebElement searchIndustryFilter = searchIndustryFields.get(0);
             utils.mouseMoveToElement(searchIndustryFilter);
-            utils.randomSleep(4);
+            Thread.sleep(4000);
             searchIndustryFilter.click();
-            utils.randomSleep(2);
+            Thread.sleep(2000);
             ((JavascriptExecutor) driver)
                     .executeScript("window.scrollTo(0, document.body.scrollHeight)");
             ((JavascriptExecutor) driver)
                     .executeScript("window.scrollTo(40, document.body.scrollHeight)");
             searchIndustryFilter.clear();
-            utils.randomSleep(8);
+            Thread.sleep(8000);
             searchIndustryFilter.sendKeys(industry);
-            utils.randomSleep(8);
+            Thread.sleep(8000);
             builder = new Actions(driver);
             builder.moveToElement(searchIndustryFilter).moveByOffset(0, 20).click().build().perform();
 
-//            utils.randomSleep(9);
+//            Thread.sleep(9000);
 
 //            lets check if location is added
 //            List<WebElement> searchIndustryResults = utils.fluentWait(By.xpath("//label[contains(@for,'facetIndustry') and contains(text()," + industry + ")]"));
@@ -1032,7 +1019,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             log.info("Search industry " + industry + " added successfully");
         }
 
-        utils.randomSleep(10);
+        Thread.sleep(10000);
         List<WebElement> applyButtons = utils.fluentWait(By.xpath("//button[contains(@data-control-name,'all_filters_apply')]"));
         if (applyButtons.isEmpty()) {
             log.error("Can't find Apply Button");
@@ -1184,7 +1171,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
         ((JavascriptExecutor) driver)
                 .executeScript("window.scrollTo(0, document.body.scrollHeight)");
-        utils.randomSleep(4);
+        Thread.sleep(4000);
         List<WebElement> searchResults = utils.fluentWait(By.xpath("//div[contains(@class,'search-result') and contains(@class,'info')]"));
         if (searchResults.isEmpty()) {
             log.error("No results found");
@@ -1195,7 +1182,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
         for (WebElement result : searchResults) {
             utils.mouseMoveToElement(result);
-            utils.randomSleep(1);
+            Thread.sleep(1000);
 
             contacts.add(extractLinkedInContact(result));
         }
@@ -1206,7 +1193,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     private List<LinkedInContact> extractLinkedInContactsOnPageSales() throws InterruptedException {
         ((JavascriptExecutor) driver)
                 .executeScript("window.scrollTo(0, document.body.scrollHeight)");
-        utils.randomSleep(4);
+        Thread.sleep(4000);
         List<WebElement> searchResults = driver.findElements(
                 By.xpath("//ol[contains(@class,'search-results__result-list')]//li[contains(@class, 'search-results__result-item')]"));
         if (searchResults.isEmpty()) {
@@ -1244,7 +1231,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                     if (linkOnCompany != null) {
                         linkedInContact.setCompanyLinkedin(linkOnCompany);
                         driver.get(linkedInContact.getCompanyLinkedin());
-                        utils.randomSleep(6);
+                        Thread.sleep(6000);
 
                         companySite = utils.findTextOrExtractValue(By.xpath("//a[@data-control-name='topcard_website']"),
                                 null, "href").orElse(null);
@@ -1268,7 +1255,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         if (nextPage != null) {
             if (nextPage.isEnabled()) {
                 nextPage.click();
-                utils.randomSleep(6);
+                Thread.sleep(6000);
                 return true;
             } else {
                 return false;
@@ -1278,10 +1265,10 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     }
 
     private boolean goToTheNextPage(int page, Long assignmentId) throws InterruptedException {
-        utils.randomSleep(2);
+        Thread.sleep(2000);
         ((JavascriptExecutor) driver)
                 .executeScript("window.scrollTo(0, document.body.scrollHeight)");
-        utils.randomSleep(1);
+        Thread.sleep(1000);
         List<WebElement> resultsPages = utils.fluentWait(By.xpath("//ol[contains(@class,'results-paginator')]/li/ol/li[contains(@class,'active')]"));
         if (resultsPages.isEmpty()) {
             resultsPages = utils.fluentWait(By.xpath("//ul[contains(@class, 'artdeco')]/li[contains(@class,'active')][contains(@class,'active')]/following-sibling::li[1]/button"));
@@ -1313,7 +1300,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             }
             assignmentRepository.save(assignment);
             nextPage.get(0).click();
-            utils.randomSleep(5);
+            Thread.sleep(5000);
             return true;
         }
         if (page != 0) {
@@ -1324,7 +1311,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             WebElement foundPage = checkIfPageLinkDisplayed(page);
             if (foundPage != null) {
                 foundPage.click();
-                utils.randomSleep(5);
+                Thread.sleep(5000);
                 return true;
             }
             WebElement currentLastPage = getLastPageDisplayed();
@@ -1335,7 +1322,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             int lastPageIndex = Integer.parseInt(currentLastPage.getText());
             if (lastPageIndex < page) {
                 currentLastPage.click();
-                utils.randomSleep(5);
+                Thread.sleep(5000);
                 paggingCounter.incrementAndGet();
                 return goToTheNextPage(page, assignmentId);
                 //paggingCounter.decrementAndGet();
