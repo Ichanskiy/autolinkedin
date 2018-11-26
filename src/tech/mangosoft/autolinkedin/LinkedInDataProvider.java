@@ -230,25 +230,21 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     private boolean connectAndSendMessagesToSales(String message) throws InterruptedException {
         logger.info("Openning popup to connect to current user");
         Thread.sleep(4000);
-        List<WebElement> webElements = utils.fluentWait(By.xpath("//div[contains(@class,'profile-top')]/button"));
-        if (!webElements.isEmpty()) {
-            Thread.sleep(4000);
-            webElements.get(0).click();
-            Thread.sleep(4000);
-            List<WebElement> connectButton = utils.fluentWait(By.xpath("//a[text() = 'Connect']"));
-            if (!connectButton.isEmpty()) {
-                Thread.sleep(2000);
-                connectButton.get(0).click();
+        WebElement popupBlock = utils.findElementsAndGetFirst(By.xpath("//div//button[contains(@class, 'profile-topcard-actions__overflow-toggle')]"), null);
+        if(popupBlock != null){
+            popupBlock.click();
+            Thread.sleep(2000);
+            WebElement connectButton = utils.findElementsAndGetFirst(By.xpath("//ul[contains(@class, 'profile-topcard-actions__overflow-dropdown')]//a[contains(@data-control-name, 'connect')]"), null);
+            if (connectButton != null) {
+                connectButton.click();
                 Thread.sleep(4000);
-                List<WebElement> customMessageTextAreas = utils.fluentWait(By.xpath("//textarea[contains(@placeholder,'custom message')]"));
-                if (!customMessageTextAreas.isEmpty()) {
-                    WebElement customMessageTextArea = customMessageTextAreas.get(0);
-                    Thread.sleep(4000);
+                WebElement customMessageTextArea = utils.findElementsAndGetFirst(By.xpath("//div[contains(@class, 'connect-cta-form__content-container')]//textarea[contains(@placeholder,'custom message')]"), null);
+                if (customMessageTextArea != null) {
                     customMessageTextArea.sendKeys(message);
                     Thread.sleep(6000);
-                    List<WebElement> sendButton = utils.fluentWait(By.xpath("//button[contains(@class,'connect')]"));
-                    if (!sendButton.isEmpty()) {
-                        sendButton.get(1).click();
+                    WebElement sendButton = utils.findElementsAndGetFirst(By.xpath("//button[text() = 'Send Invitation']"), null);
+                    if (sendButton != null) {
+                        sendButton.click();
                         Thread.sleep(2000);
                         return true;
                     }
@@ -424,11 +420,11 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
                 boolean salesMessage;
                 salesMessage = this.isContainsSales(contact.getLinkedin());
+                String message = assignment.getMessage().replace("%%", contact.getFirstName() != null ? contact.getFirstName() : "");
                 if (salesMessage) {
-                    sendingResult = this.connectAndSendMessagesToSales(assignment.getMessage().replace("%%", contact.getFirstName() != null ? contact.getFirstName() : ""));
+                    sendingResult = this.connectAndSendMessagesToSales(message);
                 } else {
-                    sendingResult = this.connectTo()
-                            && this.sendMessage(assignment.getMessage().replace("%%", contact.getFirstName() != null ? contact.getFirstName() : ""));
+                    sendingResult = this.connectTo() && this.sendMessage(message);
                 }
 
                 contactRepositoryCustom.updateContactStatus(assignment, contact, currentAccount, sendingResult ? LinkedInContact.STATUS_PROCESSED : LinkedInContact.STATUS_ERROR,
