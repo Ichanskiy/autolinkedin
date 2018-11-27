@@ -413,8 +413,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                     salesMessage = this.isContainsSales(contact.getLinkedin());
                     String message = assignment.getMessage().replace("%%", contact.getFirstName() != null ? contact.getFirstName() : "");
                     if (salesMessage) {
-                        sendingResult = true;
-//                        sendingResult = this.connectAndSendMessagesToSales(message);
+                        sendingResult = this.connectAndSendMessagesToSales(message);
                     } else {
                         sendingResult = this.connectTo() && this.sendMessage(message);
                     }
