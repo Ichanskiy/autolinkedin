@@ -39,7 +39,7 @@ public class LinkedInContactRepositoryCustomImpl implements ILinkedInContactRepo
     //OLD
     @Transactional
     @Override
-    public LinkedInContact getNextAvailableContact(int page, Assignment assignment) {
+    public LinkedInContact getNextAvailableContact(Assignment assignment) {
 //        Page<LinkedInContact> linkedInContacts = contactRepository.findAllByStatus(LinkedInContact.STATUS_NEW, PageRequest.of(page, 1));
         LinkedInContact contact = null;
         if (assignment.getPosition() != null && assignment.getIndustries() != null && assignment.getFullLocationString() != null) {

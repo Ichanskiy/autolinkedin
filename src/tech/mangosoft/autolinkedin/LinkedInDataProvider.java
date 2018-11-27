@@ -380,88 +380,63 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         throw new RuntimeException("Error reading config file");
     }
 
-    private static Long errorContactId;
-    private static final boolean finished = true;
-    private static final boolean progress = false;
-
     //OLD WORKED
     public void connection(Long processingReportId, Assignment assignment) {
         currentAccount = accountRepository.getAccountByUsername(assignment.getAccount().getUsername());
         executed = new AtomicInteger(0);
-        //lets limit exicution time
-        while (executed.get() <= assignment.getCountMessages()) {
-            LinkedInContact contact = contactRepositoryCustom.getNextAvailableContact(assignment.getPage(), assignment);
-            if (contact == null) {
+
+        while(executed.get() <= assignment.getCountMessages()){
+            LinkedInContact contact = contactRepositoryCustom.getNextAvailableContact(assignment);
+            if(contact == null){
                 logger.info("CONTACT IS NULL");
-                Assignment assignmentDB = assignmentRepository.getById(assignment.getId());
-                assignmentDB.setStatus(Status.STATUS_ASLEEP);
-                assignmentRepository.save(assignmentDB);
+                this.setStatusToAssignmentAndSave(assignment.getId(), Status.STATUS_ASLEEP);
                 logoutWithQuitDriver();
                 return;
-            }
-            errorContactId = contact.getId();
+            }else{
+                boolean sendingResult;
+                log = createLogger();
+                StringBuffer buf = stringWriter.getBuffer();
+                buf.setLength(0);
+                try{
 
-            boolean sendingResult = false;
-            String error = null;
+                    try {
+                        loginToAccount();
+                    } catch(InterruptedException e){
+                        this.setStatusToAssignmentAndSave(assignment.getId(), Status.STATUS_ERROR);
+                        logoutWithQuitDriver();
+                        return;
+                    }
 
-            log = createLogger();
+                    emailRequired = false;
 
-            //stringWriter = new StringWriter();
-            StringBuffer buf = stringWriter.getBuffer();
-            buf.setLength(0);
+                    boolean salesMessage;
+                    salesMessage = this.isContainsSales(contact.getLinkedin());
+                    String message = assignment.getMessage().replace("%%", contact.getFirstName() != null ? contact.getFirstName() : "");
+                    if (salesMessage) {
+                        sendingResult = true;
+//                        sendingResult = this.connectAndSendMessagesToSales(message);
+                    } else {
+                        sendingResult = this.connectTo() && this.sendMessage(message);
+                    }
 
-            try {
-//                starting contact processing
-                emailRequired = false;
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
-
-                loginToAccount();
-
-                boolean salesMessage;
-                salesMessage = this.isContainsSales(contact.getLinkedin());
-                String message = assignment.getMessage().replace("%%", contact.getFirstName() != null ? contact.getFirstName() : "");
-                if (salesMessage) {
-                    sendingResult = this.connectAndSendMessagesToSales(message);
-                } else {
-                    sendingResult = this.connectTo() && this.sendMessage(message);
+                    contactRepositoryCustom.updateContactStatus(assignment, contact, currentAccount, sendingResult ? LinkedInContact.STATUS_PROCESSED : LinkedInContact.STATUS_ERROR,
+                            "", stringWriter.toString(), processingReportId);
+                }catch (InterruptedException e){
+                    contactProcessingRepository.save(new ContactProcessing()
+                            .setAccount(currentAccount)
+                            .setStatus(ContactProcessing.STATUS_ERROR))
+                            .setContact(contactRepository.getById(contact.getId()));
+                    e.printStackTrace();
                 }
-
-                contactRepositoryCustom.updateContactStatus(assignment, contact, currentAccount, sendingResult ? LinkedInContact.STATUS_PROCESSED : LinkedInContact.STATUS_ERROR,
-                        "", stringWriter.toString(), processingReportId);
-//                contactRepository.save(contact.setAssignment(assignment));
-            } catch (InterruptedException | RuntimeException e) {
-//                ProcessingReport report = processingReportRepository.getById(processingReportId);
-//                report.incrementProcessed(1L);
-//                report.incrementFailed(1L);
-//                processingReportRepository.save(report);
-
-                contactProcessingRepository.save(new ContactProcessing()
-                        .setAccount(currentAccount)
-                        .setStatus(ContactProcessing.STATUS_ERROR))
-                        .setContact(contactRepository.getById(errorContactId));
-                error = e.getMessage();
-                System.out.println("Error:" + error);
-                e.printStackTrace();
-                logoutWithQuitDriver();
+                executed.incrementAndGet();
             }
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                System.out.println("Error:" + error);
-                e.printStackTrace();
-            }
-            executed.incrementAndGet();
         }
 
-        logger.info("Applivation processed " + executed.get() + " accounts. No more accounts allowed today.");
-        System.out.println("Applivation processed " + executed.get() + " accounts. No more accounts allowed today.");
-
-        //exiting from spring app
-        Assignment assignmentDB = assignmentRepository.getById(assignment.getId());
-        assignmentDB.setStatus(Status.STATUS_FINISHED);
-        assignmentRepository.save(assignmentDB);
-        logoutWithQuitDriver();
+        if(executed.get() >= assignment.getCountMessages()){
+            //exiting from spring app
+            this.setStatusToAssignmentAndSave(assignment.getId(), Status.STATUS_FINISHED);
+            logoutWithQuitDriver();
+        }
     }
 
     //    executeSearchContacts
@@ -541,10 +516,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 goToTheNextPage(0, assignmentId);
                 grabbed.incrementAndGet();
             }
-            Assignment assignment = assignmentRepository.getById(assignmentId);
-            assignment.setStatus(Status.STATUS_FINISHED);
-            assignmentRepository.save(assignment);
-//            this.logOut();
+            this.setStatusToAssignmentAndSave(assignmentId, Status.STATUS_FINISHED);
             logoutWithQuitDriver();
         } catch (InterruptedException | RuntimeException e) {
             error = e.getMessage();
@@ -563,7 +535,13 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             locationRepository.save(currentLocation);
         }
         try {
-            loginToAccount();
+            try {
+                loginToAccount();
+            }catch (InterruptedException e){
+                this.setStatusToAssignmentAndSave(assignmentId, Status.STATUS_ERROR);
+                return;
+            }
+
             driver.get(globalProperties.getLinkedinSalesLink());
             Thread.sleep(8000);
             logger.info("Click SearchForLeads successfully");
@@ -579,12 +557,11 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 fillSalesSearchForm(assignment, null);
                 parsingAndSavingContacts(assignment, account, null);
             }
-            Assignment assignmentDB = assignmentRepository.getById(assignmentId);
-            assignmentRepository.save(assignmentDB.setStatus(Status.STATUS_FINISHED));
+
+            this.setStatusToAssignmentAndSave(assignmentId, Status.STATUS_FINISHED);
         } catch (InterruptedException | RuntimeException e) {
             System.out.println("Error:" + e.getMessage());
             e.printStackTrace();
-
         } finally {
             logoutWithQuitDriver();
         }
@@ -593,6 +570,12 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     private void logoutWithQuitDriver() {
         driver = webDriverFactoryBean.getNewDriver(driver);
         utils.setDriver(driver);
+    }
+
+    private void setStatusToAssignmentAndSave(Long assignmentId, Status status){
+        Assignment assignmentDB = assignmentRepository.getById(assignmentId);
+        assignmentDB.setStatus(status);
+        assignmentRepository.save(assignmentDB);
     }
 
     private void parsingAndSavingContacts(Assignment assignment, Account account, CompanyHeadcount headcount) throws InterruptedException {
