@@ -242,5 +242,10 @@ public class SeleniumUtils {
         return null;
     }
 
+    public boolean waitDocumentReady(String url){
+        driver.get(url);
+        JavascriptExecutor js = (JavascriptExecutor)driver;
+        return js.executeScript("return document.readyState").equals("complete");
+    }
 
 }
