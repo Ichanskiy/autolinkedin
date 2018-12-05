@@ -819,10 +819,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             }
             assignmentRepository.save(assignmentDb);
             clickSearchContactsButton();
-        }else{
-            assignmentDb.setStatus(Status.STATUS_FINISHED);
-            assignmentRepository.save(assignmentDb);
-            throw new InterruptedException("Result is empty");
         }
     }
 
