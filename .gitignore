@@ -1,6 +1,7 @@
 # IntellijIdea files
 *.iml
 .idea
+.target
 out
 
 # Compiled class file

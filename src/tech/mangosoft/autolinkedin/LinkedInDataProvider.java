@@ -206,8 +206,13 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                     if(in != null){
                         in.click();
                         Thread.sleep(8000);
+                        if (!checkIfUserIsloggedIn(false)){
+                            throw new InterruptedException("Invalid login or password");
+                        }
                     }
                 }
+            } else {
+                throw new InterruptedException("Login page not found");
             }
         }
 
