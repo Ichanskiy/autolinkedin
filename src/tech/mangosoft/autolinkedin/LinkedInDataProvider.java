@@ -129,14 +129,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         System.out.println(result.getText());
     }
 
-    public SeleniumUtils getUtils() {
-        return utils;
-    }
-
-    public void setUtils(SeleniumUtils utils) {
-        this.utils = utils;
-    }
-
 
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
@@ -359,30 +351,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
         logger.info("Invitation was send successfully");
         return true;
-    }
-
-    public String getMessage(String template, Map context) {
-        return readGroovyConfig(context).get("autolinkedin." + template).toString();
-    }
-
-    public Map readGroovyConfig(Map<String, Object> context) {
-        if (context == null) {
-            context = Collections.<String, Object>emptyMap();
-        }
-
-        // Read in 'config.groovy'
-        try {
-            ConfigSlurper confSl = new ConfigSlurper();
-            confSl.setBinding(context);
-
-            ConfigObject conf = confSl.parse(new File("resources/config.groovy").toURI().toURL());
-            return conf.flatten();
-        } catch (MalformedURLException e) {
-            logger.info("Can'r read resources/config.groovy file");
-
-        }
-
-        throw new RuntimeException("Error reading config file");
     }
 
     //OLD WORKED
@@ -962,27 +930,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             network.click();
             Thread.sleep(1000);
         }
-//        for (WebElement network : searchNetworkFields) {
-//            utils.mouseMoveToElement(network);
-//            Thread.sleep(1000);
-//            network.click();
-//            Thread.sleep(1000);
-//        }
 
-        //search-filters-bar__all-filters button-tertiary-medium-muted mr3
-/*
-        List<WebElement> locationButtons = utils.fluentWait(By.xpath("//button[contains(@aria-controls,'locations-facet-values')]//h3"));
-        if (locationButtons.isEmpty()) {
-            log.error("Can't find 'Location Button'");
-            return false;
-        }
-
-        WebElement locationButton = locationButtons.get(0);
-        utils.mouseMoveToElement(locationButton);
-        Thread.sleep(1000);
-        locationButton.click();
-        Thread.sleep(2000);
-*/
         List<WebElement> searchLocationFields = utils.fluentWait(By.xpath("//input[contains(@placeholder,'Add a location')]"));
         if (searchLocationFields.isEmpty()) {
             log.error("Can't find 'Location Filter input'");
@@ -1063,30 +1011,6 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         log.info(" Form sucessfully submitted");
 
         return true;
-    }
-
-
-    private void injectScriptFile(String scriptFile) {
-        InputStream input;
-        try {
-            input = new FileInputStream(scriptFile);
-            byte[] buffer = new byte[input.available()];
-            input.read(buffer);
-            input.close();
-
-            String execution = null; //"console.log('123')";
-
-            // String-ify the script byte-array using BASE64 encoding !!!
-            String encoded = Base64.getEncoder().withoutPadding().encodeToString(buffer);
-
-            ((JavascriptExecutor) driver)
-                    .executeScript("window.atob('" + encoded + "');" + execution + ";");
-
-
-        } catch (IOException e) {
-            log.error(e.getMessage());
-            e.printStackTrace();
-        }
     }
 
     private LinkedInContact extractLinkedInContact(WebElement result) throws InterruptedException {

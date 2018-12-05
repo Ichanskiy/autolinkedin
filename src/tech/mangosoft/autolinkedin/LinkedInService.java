@@ -97,7 +97,7 @@ public class LinkedInService {
                             .setErrorMessage("Field must be not null"));
                     continue;
                 }
-                grabbingProcessor.processing(assignment);
+                grabbingProcessor.processing(assignment.getId());
             }
             if (assignment.getTask().equals(Task.TASK_GRABBING_SALES)) {
                 if (!checkField(assignment)) {
@@ -106,10 +106,10 @@ public class LinkedInService {
                             .setErrorMessage("Field must be not null"));
                     continue;
                 }
-                grabbingProcessor.processingSales(assignment);
+                grabbingProcessor.processingSales(assignment.getId());
             }
             if (assignment.getTask().equals(Task.TASK_CONNECTION)) {
-                  connectionProcessor.processing(assignment);
+                  connectionProcessor.processing(assignment.getId());
             }
         }
     }

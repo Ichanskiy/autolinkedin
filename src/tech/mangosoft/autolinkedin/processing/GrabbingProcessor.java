@@ -26,39 +26,37 @@ public class GrabbingProcessor{
     @Autowired
     private IProcessingReportRepository processingReportRepository;
 
-    public void processing(Assignment a) {
-        Assignment assignmentDB = assignmentRepository.getById(a.getId());
+    public void processing(Long assignmentId) {
+        Assignment assignment = assignmentRepository.getById(assignmentId);
         ProcessingReport processingReportDB = processingReportRepository.save(new ProcessingReport()
                 .setSaved(0L)
                 .setFailed(0L)
                 .setProcessed(0L)
                 .setSuccessed(0L))
                 .setStartTime(new Date());
-        assignmentDB.addProcessinReport(processingReportDB);
-        assignmentDB.setStatus(Status.STATUS_IN_PROGRESS);
-        assignmentRepository.save(assignmentDB);
-        linkedInDataProvider.grabbing(a.getId(), processingReportDB.getId(), a.getFullLocationString(), a.getPosition(), a.getIndustries(), a.getAccount());
+        assignment.addProcessinReport(processingReportDB);
+        assignment.setStatus(Status.STATUS_IN_PROGRESS);
+        Assignment assignmentDB = assignmentRepository.save(assignment);
+        linkedInDataProvider.grabbing(assignmentDB.getId(), processingReportDB.getId(),
+                assignmentDB.getFullLocationString(), assignmentDB.getPosition(), assignmentDB.getIndustries(), assignmentDB.getAccount());
 
         ProcessingReport processingReportSaved = processingReportRepository.getById(processingReportDB.getId());
         processingReportSaved.setFinishTime(new Date());
         processingReportRepository.save(processingReportSaved);
     }
 
-    public void processingSales(Assignment a) {
-        Assignment assignmentDB = assignmentRepository.getById(a.getId());
+    public void processingSales(Long assignmentId) {
+        Assignment assignment = assignmentRepository.getById(assignmentId);
         ProcessingReport processingReportDB = processingReportRepository.save(new ProcessingReport()
                 .setSaved(0L)
                 .setFailed(0L)
                 .setProcessed(0L)
                 .setSuccessed(0L))
                 .setStartTime(new Date());
-        assignmentDB.addProcessinReport(processingReportDB);
-        assignmentDB.setStatus(Status.STATUS_IN_PROGRESS);
-        if(assignmentDB.getPage() == null){
-            assignmentDB.setPage(0);
-        }
-        assignmentRepository.save(assignmentDB);
-        linkedInDataProvider.grabbingSales(a.getId(), a.getAccount());
+        assignment.addProcessinReport(processingReportDB);
+        assignment.setStatus(Status.STATUS_IN_PROGRESS);
+        Assignment assignmentDB = assignmentRepository.save(assignment);
+        linkedInDataProvider.grabbingSales(assignmentDB.getId(), assignmentDB.getAccount());
         ProcessingReport processingReportSaved = processingReportRepository.getById(processingReportDB.getId());
         processingReportSaved.setFinishTime(new Date());
         processingReportRepository.save(processingReportSaved);

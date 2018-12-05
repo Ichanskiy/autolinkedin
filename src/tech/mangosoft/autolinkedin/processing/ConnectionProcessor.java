@@ -26,21 +26,21 @@ public class ConnectionProcessor{
     @Autowired
     private IProcessingReportRepository processingReportRepository;
 
-    public void processing(Assignment assignment) {
-        Assignment assignmentDB = assignmentRepository.getById(assignment.getId());
+    public void processing(Long assignmentId) {
+        Assignment assignment = assignmentRepository.getById(assignmentId);
         ProcessingReport processingReportDB = processingReportRepository.save(new ProcessingReport()
                 .setSaved(0L)
                 .setFailed(0L)
                 .setProcessed(0L)
                 .setSuccessed(0L))
                 .setStartTime(new Date());
-        assignmentDB.addProcessinReport(processingReportDB);
-        assignmentDB.setStatus(Status.STATUS_IN_PROGRESS);
+        assignment.addProcessinReport(processingReportDB);
+        assignment.setStatus(Status.STATUS_IN_PROGRESS);
 //        todo fix this
-        Assignment assignment1 = assignmentRepository.save(assignmentDB);
+        Assignment assignmentDB = assignmentRepository.save(assignment);
 
-        int size = assignment1.getProcessingReports().size();
-        ProcessingReport processingReport  = assignment1.getProcessingReports().get(size - 1);
+        int size = assignmentDB.getProcessingReports().size();
+        ProcessingReport processingReport  = assignmentDB.getProcessingReports().get(size - 1);
         linkedInDataProvider.connection(processingReport.getId(), assignmentDB);
 //        boolean statusConnection = linkedInDataProvider.connection(processingReport.getId(), assignmentDB);
 //        if (statusConnection == finished) {
