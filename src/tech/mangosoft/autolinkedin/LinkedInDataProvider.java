@@ -419,18 +419,16 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                     }
 
                     emailRequired = false;
-
-                    boolean salesMessage;
-                    salesMessage = this.isContainsSales(contact.getLinkedin());
-                    String message = assignment.getMessage().replace("%%", contact.getFirstName() != null ? contact.getFirstName() : "");
+                    boolean salesMessage = this.isContainsSales(contact.getLinkedin());
+                    String message = buildMessage(assignment, contact, salesMessage);
                     if (salesMessage) {
                         sendingResult = this.connectAndSendMessagesToSales(message);
                     } else {
                         sendingResult = this.connectTo() && this.sendMessage(message);
                     }
-
                     contactRepositoryCustom.updateContactStatus(assignment, contact, currentAccount, sendingResult ? LinkedInContact.STATUS_PROCESSED : LinkedInContact.STATUS_ERROR,
                             "", stringWriter.toString(), processingReportId);
+
                 } catch (InterruptedException e) {
                     contactProcessingRepository.save(new ContactProcessing()
                             .setAccount(currentAccount)
@@ -447,6 +445,37 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             this.setStatusToAssignmentAndSave(assignment.getId(), Status.STATUS_FINISHED);
             logoutWithQuitDriver();
         }
+    }
+
+    private String buildMessage(Assignment assignment, LinkedInContact contact, boolean isSales){
+        if(assignment.getMessage().contains("%%")){
+            if(isSales){
+                String firstNameLinkedIn = getFirstNameFromLinkedIn();
+                if(firstNameLinkedIn != null){
+                    if(!firstNameLinkedIn.equalsIgnoreCase(contact.getFirstName())){
+                        return assignment.getMessage().replace("%%", firstNameLinkedIn);
+                    }else{
+                        return assignment.getMessage().replace("%%", contact.getFirstName());
+                    }
+                }else{
+                    return assignment.getMessage().replace("%%", "");
+                }
+            }else{
+                return assignment.getMessage().replace("%%", contact.getFirstName() != null ? contact.getFirstName() : "");
+            }
+        }else{
+            return assignment.getMessage();
+        }
+    }
+
+    private String getFirstNameFromLinkedIn(){
+        WebElement linkedInFirstName = utils.findElementsAndGetFirst(By.xpath("//span[contains(@class , 'profile-topcard-person-entity__name')]"), null);
+        if(linkedInFirstName != null){
+            String fullNameLinkedIn = linkedInFirstName.getText();
+            String firstNameLinkedIn = fullNameLinkedIn.substring(0, fullNameLinkedIn.indexOf(" "));
+            return firstNameLinkedIn;
+        }
+        return null;
     }
 
     //    executeSearchContacts
