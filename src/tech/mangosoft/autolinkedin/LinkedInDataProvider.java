@@ -385,23 +385,28 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         currentAccount = accountRepository.getAccountByUsername(assignment.getAccount().getUsername());
         executed = new AtomicInteger(0);
 
-        while(executed.get() <= assignment.getCountMessages()){
+        while (executed.get() <= assignment.getCountMessages()) {
+            Assignment assignmentForCheckStatus = assignmentRepository.getById(assignment.getId());
+            if (assignmentForCheckStatus.getStatus() == Status.STATUS_SUSPENDED) {
+                return;
+            }
+
             LinkedInContact contact = contactRepositoryCustom.getNextAvailableContact(assignment);
-            if(contact == null){
+            if (contact == null) {
                 logger.info("CONTACT IS NULL");
                 this.setStatusToAssignmentAndSave(assignment.getId(), Status.STATUS_ASLEEP);
                 logoutWithQuitDriver();
                 return;
-            }else{
+            } else {
                 boolean sendingResult;
                 log = createLogger();
                 StringBuffer buf = stringWriter.getBuffer();
                 buf.setLength(0);
-                try{
+                try {
 
                     try {
                         loginToAccount();
-                    } catch(InterruptedException e){
+                    } catch (InterruptedException e) {
                         this.setStatusToAssignmentAndSave(assignment.getId(), Status.STATUS_ERROR);
                         logoutWithQuitDriver();
                         return;
@@ -420,7 +425,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
 
                     contactRepositoryCustom.updateContactStatus(assignment, contact, currentAccount, sendingResult ? LinkedInContact.STATUS_PROCESSED : LinkedInContact.STATUS_ERROR,
                             "", stringWriter.toString(), processingReportId);
-                }catch (InterruptedException e){
+                } catch (InterruptedException e) {
                     contactProcessingRepository.save(new ContactProcessing()
                             .setAccount(currentAccount)
                             .setStatus(ContactProcessing.STATUS_ERROR))
@@ -431,7 +436,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
             }
         }
 
-        if(executed.get() >= assignment.getCountMessages()){
+        if (executed.get() >= assignment.getCountMessages()) {
             //exiting from spring app
             this.setStatusToAssignmentAndSave(assignment.getId(), Status.STATUS_FINISHED);
             logoutWithQuitDriver();
@@ -549,15 +554,28 @@ public class LinkedInDataProvider implements ApplicationContextAware {
                 for (CompanyHeadcount headcount : assignment.getHeadcounts()) {
                     fillSalesSearchForm(assignment, headcount);
                     parsingAndSavingContacts(assignment, account, headcount);
+
+                    Assignment assignmentForCheckStatus = assignmentRepository.getById(assignment.getId());
+                    if (assignmentForCheckStatus.getStatus() == Status.STATUS_SUSPENDED) {
+                        return;
+                    }
+
                     driver.get(globalProperties.getLinkedinSalesLink());
+                    this.setStatusToAssignmentAndSave(assignmentId, Status.STATUS_FINISHED);
                     Thread.sleep(8000);
                 }
             } else {
                 fillSalesSearchForm(assignment, null);
                 parsingAndSavingContacts(assignment, account, null);
+
+                Assignment assignmentForCheckStatus = assignmentRepository.getById(assignment.getId());
+                if (assignmentForCheckStatus.getStatus() == Status.STATUS_SUSPENDED) {
+                    return;
+                }
+
+                this.setStatusToAssignmentAndSave(assignmentId, Status.STATUS_FINISHED);
             }
 
-            this.setStatusToAssignmentAndSave(assignmentId, Status.STATUS_FINISHED);
         } catch (InterruptedException | RuntimeException e) {
             System.out.println("Error:" + e.getMessage());
             e.printStackTrace();
@@ -567,8 +585,9 @@ public class LinkedInDataProvider implements ApplicationContextAware {
     }
 
     private void logoutWithQuitDriver() {
-        driver = webDriverFactoryBean.getNewDriver(driver);
-        utils.setDriver(driver);
+        driver.get(globalProperties.getLinkedinLink());
+//        driver = webDriverFactoryBean.getNewDriver(driver);
+//        utils.setDriver(driver);
     }
 
     private void setStatusToAssignmentAndSave(Long assignmentId, Status status){
@@ -583,6 +602,10 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         boolean canExecute = true;
 
         while (pagesAvailable && canExecute) {
+            Assignment assignmentForCheckStatus = assignmentRepository.getById(assignment.getId());
+            if (assignmentForCheckStatus.getStatus() == Status.STATUS_SUSPENDED) {
+                return;
+            }
             StringBuffer buf = stringWriter.getBuffer();
             buf.setLength(0);
             canExecute = checkGrabbingLimit(currentAccount);

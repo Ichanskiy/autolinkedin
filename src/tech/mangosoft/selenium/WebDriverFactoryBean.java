@@ -28,7 +28,7 @@ public class WebDriverFactoryBean implements FactoryBean<WebDriver> {
         //chrome
         ChromeOptions options = new ChromeOptions();
         options.addArguments("--profile-directory=Default");
-        options.addArguments("--incognito");
+//        options.addArguments("--incognito");
         options.addArguments("--start-maximized");
         options.addArguments("--disable-plugins-discovery");
         options.addArguments("--disable-infobars");
