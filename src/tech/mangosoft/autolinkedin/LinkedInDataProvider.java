@@ -388,6 +388,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         while (executed.get() <= assignment.getCountMessages()) {
             Assignment assignmentForCheckStatus = assignmentRepository.getById(assignment.getId());
             if (assignmentForCheckStatus.getStatus() == Status.STATUS_SUSPENDED) {
+                logoutWithQuitDriver();
                 return;
             }
 
