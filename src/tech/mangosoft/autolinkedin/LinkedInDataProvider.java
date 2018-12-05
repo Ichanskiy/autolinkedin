@@ -415,7 +415,7 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         }
     }
 
-    private String buildMessage(Assignment assignment, LinkedInContact contact, boolean isSales){
+    private String buildMessage(Assignment assignment, LinkedInContact contact, boolean isSales) throws InterruptedException {
         if(assignment.getMessage().contains("%%")){
             if(isSales){
                 String firstNameLinkedIn = getFirstNameFromLinkedIn();
@@ -436,7 +436,8 @@ public class LinkedInDataProvider implements ApplicationContextAware {
         }
     }
 
-    private String getFirstNameFromLinkedIn(){
+    private String getFirstNameFromLinkedIn() throws InterruptedException {
+        Thread.sleep(4000);
         WebElement linkedInFirstName = utils.findElementsAndGetFirst(By.xpath("//span[contains(@class , 'profile-topcard-person-entity__name')]"), null);
         if(linkedInFirstName != null){
             String fullNameLinkedIn = linkedInFirstName.getText();
